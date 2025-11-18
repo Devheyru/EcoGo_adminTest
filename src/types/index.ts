@@ -7,7 +7,7 @@ export * from "./settings";
 
 export type UserRole = "admin" | "operator";
 
-export interface User {
+export interface Users {
   id: string;
   name: string;
   email: string;

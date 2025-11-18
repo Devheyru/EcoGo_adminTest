@@ -98,37 +98,45 @@ export function DriversPage() {
   const [messageText, setMessageText] = useState("");
   const [newDriverVehicleType, setNewDriverVehicleType] = useState("");
   const [riders, setRiders] = useState<Rider[]>([]);
+  const [adminData, setAdminData] = useState<AdminData | null>(null);
 
   const [selectedRider, setSelectedRider] = useState<Rider | null>(null);
 
-  const [adminData, setAdminData] = useState<AdminData | null>(null);
+  // const [adminData, setAdminData] = useState<AdminData | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   // const [riders, setRiders] = useState<UserData[]>([]);
   const [rides, setRides] = useState<RideData[]>([]);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        router.push("/drivers");
-        return;
-      }
+ useEffect(() => {
+   const unsubscribe = onAuthStateChanged(auth, async (user) => {
+     if (!user) {
+       router.push("/drivers");
+       return;
+     }
 
-      const adminRef = doc(db, "admins", user.uid);
-      const adminSnap = await getDoc(adminRef);
+     const adminRef = doc(db, "admins", user.uid);
+     const adminSnap = await getDoc(adminRef);
 
-      if (adminSnap.exists()) {
-        setAdminData(adminSnap.data());
-        loadAllData(); // <--- now real-time
-      } else {
-        router.push("/login");
-      }
+     if (adminSnap.exists()) {
+       const data = adminSnap.data();
 
-      setLoading(false);
-    });
+       setAdminData({
+         id: user.uid,
+         ...data,
+       } as AdminData);
 
-    return () => unsubscribe();
-  }, []);
+       loadAllData();
+     } else {
+       router.push("/login");
+     }
+
+     setLoading(false);
+   });
+
+   return () => unsubscribe();
+ }, []);
+
   const loadAllData = () => {
     // 🔵 Real-time: Drivers
 

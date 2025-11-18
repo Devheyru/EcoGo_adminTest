@@ -90,12 +90,35 @@ export function RidersPage() {
       const adminRef = doc(db, "admins", user.uid);
       const adminSnap = await getDoc(adminRef);
 
-      if (adminSnap.exists()) {
-        setAdminData(adminSnap.data());
-        loadAllData(); // <--- now real-time
-      } else {
-        router.push("/login");
-      }
+      useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+          if (!user) {
+            router.push("/riders");
+            return;
+          }
+
+          const adminRef = doc(db, "admins", user.uid);
+          const adminSnap = await getDoc(adminRef);
+
+          if (adminSnap.exists()) {
+            const data = adminSnap.data();
+
+            setAdminData({
+              id: user.uid,
+              ...data,
+            } as AdminData);
+
+            loadAllData();
+          } else {
+            router.push("/login");
+          }
+
+          setLoading(false);
+        });
+
+        return () => unsubscribe();
+      }, []);
+
 
       setLoading(false);
     });

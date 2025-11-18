@@ -21,12 +21,12 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Search, UserPlus, Shield, Edit, Trash2 } from "lucide-react";
-import { User } from "@/types";
+import { Users } from "@/types";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db } from "../../src/firebase/config";
-
+import { User } from "../models/admin";
 import { onAuthStateChanged } from "firebase/auth";
 import {
   doc,
@@ -61,7 +61,7 @@ interface AdminData {
   role?: string;
 }
 
-const mockAdmins: User[] = [
+const mockAdmins: Users[] = [
   {
     id: "1",
     name: "John Admin",
@@ -101,15 +101,17 @@ const mockAdmins: User[] = [
 ];
 
 export function AdminsPage() {
-  const [admins, setAdmins] = useState<User[]>(mockAdmins);
+  const [admins, setAdmins] = useState<Users[]>(mockAdmins);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const router = useRouter();
-  const [admin, setAdminData] = useState<AdminData[]>();
+
   const [drivers, setDrivers] = useState<UserData[]>([]);
   const [riders, setRiders] = useState<UserData[]>([]);
   const [rides, setRides] = useState<RideData[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [admin, setAdmin] = useState<User | null>(null); // <--- fixed
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -122,8 +124,8 @@ export function AdminsPage() {
       const adminSnap = await getDoc(adminRef);
 
       if (adminSnap.exists()) {
-        setAdminData(adminSnap.data());
-        loadAllData(); // <--- now real-time
+        setAdmin({ id: user.uid, ...adminSnap.data() } as User); // <--- fixed
+        loadAllData();
       } else {
         router.push("/");
       }
