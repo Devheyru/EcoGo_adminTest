@@ -70,9 +70,16 @@ interface RideData {
   driverId: string;
 }
 interface AdminData {
+  id: string;
+  mobile: string;
+  phone?: string;
+  canOverride: boolean;
   name?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   role?: string;
+  
 }
 interface Drivers {
   id: string;
@@ -111,25 +118,31 @@ export function DriversPage() {
  useEffect(() => {
    const unsubscribe = onAuthStateChanged(auth, async (user) => {
      if (!user) {
-       router.push("/drivers");
+       router.push("/login");
        return;
      }
 
      const adminRef = doc(db, "admins", user.uid);
      const adminSnap = await getDoc(adminRef);
 
-     if (adminSnap.exists()) {
-       const data = adminSnap.data();
+    if (adminSnap.exists()) {
+      const data = adminSnap.data();
 
-       setAdminData({
-         id: user.uid,
-         ...data,
-       } as AdminData);
+      setAdminData({
+        id: user.uid,
+        firstName: data.firstName ?? "",
+        lastName: data.lastName ?? "",
+        email: data.email ?? "",
+        role: data.role ?? "",
+        mobile: data.mobile ?? "",
+        canOverride: data.canOverride ?? false,
+      });
 
-       loadAllData();
-     } else {
-       router.push("/login");
-     }
+      loadAllData();
+    } else {
+      router.push("/login");
+    }
+
 
      setLoading(false);
    });
@@ -151,6 +164,7 @@ export function DriversPage() {
             return {
               id: doc.id,
               name: data.name ?? "",
+
               email: data.email ?? "",
               phone: data.phone ?? "",
               vehicleType: data.vehicleType ?? "",
@@ -246,7 +260,7 @@ export function DriversPage() {
   };
 
   return (
-    <div className="bg-white h-screen border-none shadow-md rounded-lg p-6">
+    <div className="bg-white h-full border-none shadow-md rounded-lg p-6">
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>

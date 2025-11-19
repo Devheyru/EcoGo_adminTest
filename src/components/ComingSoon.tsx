@@ -22,9 +22,9 @@ export default function ComingSoon() {
   return (
     // Main Container: Soft background with a slight dark texture overlay
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-6 sm:p-12 transition-all duration-500"
+      className="min-h-screen bg-white flex flex-col items-center justify-center p-6 sm:p-12 transition-all duration-500"
       style={{
-        backgroundColor: BRAND_COLORS.lightGray,
+       
         fontFamily: "Inter, sans-serif",
       }}
     >

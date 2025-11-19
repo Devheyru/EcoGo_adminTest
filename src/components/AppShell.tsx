@@ -105,11 +105,9 @@ export function AppShell() {
           if (pathname === "/") router.push("/dashboard");
 
           // Update cache immediately
-          __APP_SHELL_CACHE = {
-            isLoggedIn: true,
-            userRole: userRole,
-            userName: computedName || userName,
-          };
+        __APP_SHELL_CACHE = null;
+
+
         } else {
           setIsLoggedIn(false);
           setUserName("");
@@ -213,7 +211,9 @@ export function AppShell() {
         {currentPage === "users" && userRole === "admin" && <UsersPage />}
         {currentPage === "drivers" && userRole === "admin" && <DriversPage />}
         {currentPage === "riders" && userRole === "admin" && <RidersPage />}
-        {currentPage === "admins" && userRole === "admin" && <AdminsPage />}
+        {/* {currentPage === "admins" && userRole === "admin" && <AdminsPage />} */}
+        {currentPage === "admins" && <AdminsPage />}
+
         {currentPage === "operators" && userRole === "admin" && (
           <OperatorsPage />
         )}

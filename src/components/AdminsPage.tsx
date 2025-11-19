@@ -109,7 +109,9 @@ const mockAdmins: AdminData[] = [
 ];
 
 export function AdminsPage() {
-const [admins, setAdmins] = useState<AdminData[]>(mockAdmins);
+  // const [admins, setAdmins] = useState<AdminData[]>(mockAdmins);
+  const [admins, setAdmins] = useState<AdminData[]>([]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const router = useRouter();
@@ -121,28 +123,29 @@ const [admins, setAdmins] = useState<AdminData[]>(mockAdmins);
 
   const [admin, setAdmin] = useState<User | null>(null); // <--- fixed
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        router.push("/");
-        return;
-      }
+ useEffect(() => {
+   const unsubscribe = onAuthStateChanged(auth, async (user) => {
+     if (!user) {
+       router.push("/"); // ✅ FIXED
+       return;
+     }
 
-      const adminRef = doc(db, "admins", user.uid);
-      const adminSnap = await getDoc(adminRef);
+     const adminRef = doc(db, "admins", user.uid);
+     const adminSnap = await getDoc(adminRef);
 
-      if (adminSnap.exists()) {
-        setAdmin({ id: user.uid, ...adminSnap.data() } as User); // <--- fixed
-        loadAllData();
-      } else {
-        router.push("/");
-      }
+     if (adminSnap.exists()) {
+       setAdmin({ id: user.uid, ...adminSnap.data() } as User);
+       loadAllData();
+     } else {
+       router.push("/"); // or "/login"
+     }
 
-      setLoading(false);
-    });
+     setLoading(false);
+   });
 
-    return () => unsubscribe();
-  }, []);
+   return () => unsubscribe();
+ }, []);
+
 
   const loadAllData = () => {
     // 🔵 Real-time: Drivers
@@ -157,6 +160,7 @@ const [admins, setAdmins] = useState<AdminData[]>(mockAdmins);
         );
       }
     );
+
     const unsubscribeDrivers = onSnapshot(
       collection(db, "drivers"),
       (snapshot) => {

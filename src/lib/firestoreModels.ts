@@ -63,24 +63,50 @@ rideId: snapshot.id,
 
 
 export const chatSummaryConverter: FirestoreDataConverter<ChatSummary> = {
-toFirestore(c) {
-return { ...c };
-},
-fromFirestore(snapshot) {
-return { ...snapshot.data(), chatId: snapshot.id } as ChatSummary;
-},
+  toFirestore(c: ChatSummary) {
+    return {
+      participants: c.participants,
+      lastMessage: c.lastMessage ?? "",
+      updatedAt: c.updatedAt ?? new Date().toISOString(),
+      unread: c.unread ?? {},
+    };
+  },
+
+  fromFirestore(snapshot) {
+    const data = snapshot.data() as any;
+    return {
+      chatId: snapshot.id,
+      participants: data.participants,
+      lastMessage: data.lastMessage,
+      updatedAt: data.updatedAt,
+      unread: data.unread ?? {},
+    } as ChatSummary;
+  },
 };
+
 
 
 export const chatMessageConverter: FirestoreDataConverter<ChatMessage> = {
   toFirestore(m: ChatMessage) {
-    return { ...m }; // MUST RETURN AN OBJECT ✔
+    return {
+      senderId: m.senderId,
+      text: m.text ?? "",
+      type: m.type ?? "text",
+      createdAt: m.createdAt,
+      readBy: m.readBy ?? [],
+    };
   },
+
   fromFirestore(snapshot) {
     const data = snapshot.data() as any;
     return {
-      ...data,
       messageId: snapshot.id,
+      senderId: data.senderId,
+      text: data.text,
+      type: data.type,
+      createdAt: data.createdAt,
+      readBy: data.readBy ?? [],
     } as ChatMessage;
   },
 };
+

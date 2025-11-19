@@ -67,7 +67,13 @@ interface RideData {
   driverId: string;
 }
 interface AdminData {
+  id: string;
+  mobile: string;
+  phone?: string;
+  canOverride: boolean;
   name?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   role?: string;
 }
@@ -89,42 +95,59 @@ export function RidersPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        router.push("/riders");
+        router.push("/login");
         return;
       }
 
       const adminRef = doc(db, "admins", user.uid);
       const adminSnap = await getDoc(adminRef);
+      
 
-      useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-          if (!user) {
-            router.push("/riders");
-            return;
-          }
+      // useEffect(() => {
+      //   const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      //     if (!user) {
+      //       router.push("/riders");
+      //       return;
+      //     }
 
-          const adminRef = doc(db, "admins", user.uid);
-          const adminSnap = await getDoc(adminRef);
+      //     const adminRef = doc(db, "admins", user.uid);
+      //     const adminSnap = await getDoc(adminRef);
 
-          if (adminSnap.exists()) {
-            const data = adminSnap.data();
+      //     if (adminSnap.exists()) {
+      //       const data = adminSnap.data();
 
-            setAdminData({
-              id: user.uid,
-              ...data,
-            } as AdminData);
+      //       setAdminData({
+      //         id: user.uid,
+      //         ...data,
+      //       } as AdminData);
 
-            loadAllData();
-          } else {
-            router.push("/login");
-          }
+      //       loadAllData();
+      //     } else {
+      //       router.push("/login");
+      //     }
 
-          setLoading(false);
-        });
+      //     setLoading(false);
+      //   });
 
-        return () => unsubscribe();
-      }, []);
+      //   return () => unsubscribe();
+      // }, []);
+  if (adminSnap.exists()) {
+    const data = adminSnap.data();
 
+    setAdminData({
+      id: user.uid,
+      firstName: data.firstName ?? "",
+      lastName: data.lastName ?? "",
+      email: data.email ?? "",
+      role: data.role ?? "",
+      mobile: data.mobile ?? "",
+      canOverride: data.canOverride ?? false,
+    });
+
+    loadAllData();
+  } else {
+    router.push("/login");
+  }
 
       setLoading(false);
     });
@@ -137,16 +160,19 @@ export function RidersPage() {
     // 🟢 Real-time: Riders
     const unsubscribeRides = onSnapshot(collection(db, "rides"), (snapshot) => {
       setRides(
-        snapshot.docs.map((doc) => ({
-          id: doc.id,
-          pickup: doc.data().pickup ?? "",
-          destination: doc.data().destination ?? "",
-          name: doc.data().name ?? "",
-          fare: doc.data().fare ?? 0,
-          status: doc.data().status ?? "pending",
-          riderId: doc.data().riderId ?? "",
-          driverId: doc.data().driverId ?? "",
-        })) as RideData[]
+        snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            pickup: data.pickup ?? "",
+            destination: data.destination ?? "",
+            name: data.name ?? "",
+            fare: data.fare ?? 0,
+            status: data.status ?? "pending",
+            riderId: data.riderId ?? "",
+            driverId: data.driverId ?? "",
+          } satisfies RideData;
+        })
       );
     });
 
@@ -591,13 +617,13 @@ export function RidersPage() {
                   <div>
                     <p className="text-sm" style={{ color: "#2D2D2D" }}>
                       Last Trip
-                    </p>
-                    ``
+                    </p>``
                     <p>
-                      {selectedRider.lastTrip
-                        ? selectedRider.lastTrip.toDate().toLocaleDateString()
-                        : "No trips yet"}
-                    </p>
+  {selectedRider.lastTrip
+    ? selectedRider.lastTrip.toDate().toLocaleDateString()
+    : "No trips yet"}
+</p>
+
                   </div>
                 </div>
               </div>
