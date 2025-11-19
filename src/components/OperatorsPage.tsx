@@ -35,6 +35,7 @@ import { toast } from "sonner";
 const mockOperators: User[] = [
   {
     id: "1",
+    uid: "1",
     name: "Alex Thompson",
     email: "alex.thompson@ecogo.ca",
     role: "operator",
@@ -44,6 +45,7 @@ const mockOperators: User[] = [
   },
   {
     id: "2",
+    uid: "2",
     name: "Jessica Martinez",
     email: "jessica.m@ecogo.ca",
     role: "operator",
@@ -53,6 +55,7 @@ const mockOperators: User[] = [
   },
   {
     id: "3",
+    uid: "3",
     name: "David Lee",
     email: "david.lee@ecogo.ca",
     role: "operator",
@@ -62,6 +65,7 @@ const mockOperators: User[] = [
   },
   {
     id: "4",
+    uid: "4",
     name: "Rachel Green",
     email: "rachel.g@ecogo.ca",
     role: "operator",
@@ -69,78 +73,7 @@ const mockOperators: User[] = [
     createdAt: "2024-04-20",
     lastLogin: "2025-11-15T06:20:00",
   },
-  // {
-  //   id: "5",
-  //   name: "Kevin Park",
-  //   email: "kevin.p@ecogo.ca",
-  //   role: "operator",
-  //   status: "active",
-  //   createdAt: "2024-05-05",
-  //   lastLogin: "2025-11-14T22:10:00",
-  // },
-  // {
-  //   id: "6",
-  //   name: "Lisa Anderson",
-  //   email: "lisa.a@ecogo.ca",
-  //   role: "operator",
-  //   status: "active",
-  //   createdAt: "2024-05-18",
-  //   lastLogin: "2025-11-15T05:50:00",
-  // },
-  // {
-  //   id: "7",
-  //   name: "Tom Wilson",
-  //   email: "tom.w@ecogo.ca",
-  //   role: "operator",
-  //   status: "active",
-  //   createdAt: "2024-06-02",
-  //   lastLogin: "2025-11-14T20:30:00",
-  // },
-  // {
-  //   id: "8",
-  //   name: "Maria Garcia",
-  //   email: "maria.g@ecogo.ca",
-  //   role: "operator",
-  //   status: "active",
-  //   createdAt: "2024-06-15",
-  //   lastLogin: "2025-11-15T09:00:00",
-  // },
-  // {
-  //   id: "9",
-  //   name: "James Taylor",
-  //   email: "james.t@ecogo.ca",
-  //   role: "operator",
-  //   status: "inactive",
-  //   createdAt: "2024-07-10",
-  //   lastLogin: "2025-10-20T14:00:00",
-  // },
-  // {
-  //   id: "10",
-  //   name: "Sophie Chen",
-  //   email: "sophie.c@ecogo.ca",
-  //   role: "operator",
-  //   status: "active",
-  //   createdAt: "2024-07-25",
-  //   lastLogin: "2025-11-15T08:45:00",
-  // },
-  // {
-  //   id: "11",
-  //   name: "Daniel Brown",
-  //   email: "daniel.b@ecogo.ca",
-  //   role: "operator",
-  //   status: "active",
-  //   createdAt: "2024-08-08",
-  //   lastLogin: "2025-11-14T19:15:00",
-  // },
-  // {
-  //   id: "12",
-  //   name: "Emma White",
-  //   email: "emma.w@ecogo.ca",
-  //   role: "operator",
-  //   status: "active",
-  //   createdAt: "2024-08-22",
-  //   lastLogin: "2025-11-15T07:00:00",
-  // },
+  
 ];
 
 export function OperatorsPage() {
@@ -150,7 +83,7 @@ export function OperatorsPage() {
 
   const filteredOperators = operators.filter(
     (operator) =>
-      operator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      operator.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       operator.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -159,6 +92,9 @@ export function OperatorsPage() {
     const formData = new FormData(e.currentTarget);
     const newOperator: User = {
       id: `${operators.length + 1}`,
+      uid: `${operators.length + 1}`,
+  
+
       name: formData.get("name") as string,
       email: formData.get("email") as string,
       role: "operator",
@@ -185,6 +121,7 @@ export function OperatorsPage() {
     {
       label: "Inactive",
       value: operators.filter((o) => o.status === "inactive").length,
+
       icon: Users,
     },
   ];

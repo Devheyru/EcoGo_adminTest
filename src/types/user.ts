@@ -1,6 +1,6 @@
 export type Role = "admin" | "driver" | "rider" | "support"| "operator";
 
-export type UserStatus = "active" | "suspended" | "pending";
+export type UserStatus = "active" | "suspended" | "pending" | "inactive";
 
 export interface KycInfo {
   completed: boolean;
@@ -21,13 +21,16 @@ export interface Rating {
 
 export interface User {
   uid: string;
+  id: string;
   email: string;
+  name?: string;
   firstName?: string;
   lastName?: string;
   phone?: string;
   role: Role;
   status: UserStatus;
   createdAt: string; // ISO string
+  lastLogin?: string; // ISO string
   kyc?: KycInfo;
   wallet?: Wallet;
   rating?: Rating;
