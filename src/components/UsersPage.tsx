@@ -19,7 +19,8 @@ export function UsersPage() {
 
   const filteredUsers = users.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -28,6 +29,7 @@ export function UsersPage() {
     const formData = new FormData(e.currentTarget);
     const newUser: User = {
       id: `${users.length + 1}`,
+      uid: `${users.length + 1}`,
       name: formData.get('name') as string,
       email: formData.get('email') as string,
       role: formData.get('role') as UserRole,
