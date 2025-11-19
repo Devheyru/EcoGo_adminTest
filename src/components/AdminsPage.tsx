@@ -20,7 +20,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Search, UserPlus, Shield, Edit, Trash2 } from "lucide-react";
+import {
+  Search,
+  UserPlus,
+  Shield,
+  Edit,
+  Trash2,
+  CircleOff,
+  CheckCircle,
+  UserCheck,
+  Icon,
+} from "lucide-react";
 import { Users } from "@/types";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
@@ -28,6 +38,8 @@ import { useRouter } from "next/navigation";
 import { auth, db } from "../../src/firebase/config";
 import { User } from "../models/admin";
 import { onAuthStateChanged } from "firebase/auth";
+import { Timestamp } from "firebase/firestore";
+
 import {
   doc,
   getDoc,
@@ -62,51 +74,51 @@ interface AdminData {
   email?: string;
   role?: string;
   status?: string;
-  createdAt?: any;
-  lastLogin?: string;
+  createdAt?: Timestamp
+  lastLogin?: Timestamp
   [key: string]: any;
   phone?: string;
 }
 
 
-const mockAdmins: AdminData[] = [
-  {
-    id: "1",
-    name: "John Admin",
-    email: "john.admin@ecogo.ca",
-    role: "admin",
-    status: "active",
-    createdAt: "2024-01-15",
-    lastLogin: "2025-11-14T09:30:00",
-  },
-  {
-    id: "4",
-    name: "Emily Chen",
-    email: "emily.chen@ecogo.ca",
-    role: "admin",
-    status: "active",
-    createdAt: "2024-01-20",
-    lastLogin: "2025-11-14T07:20:00",
-  },
-  {
-    id: "6",
-    name: "Michael Brown",
-    email: "michael.b@ecogo.ca",
-    role: "admin",
-    status: "active",
-    createdAt: "2024-02-10",
-    lastLogin: "2025-11-13T18:45:00",
-  },
-  {
-    id: "7",
-    name: "Sarah Johnson",
-    email: "sarah.j@ecogo.ca",
-    role: "admin",
-    status: "inactive",
-    createdAt: "2024-03-05",
-    lastLogin: "2025-10-15T14:20:00",
-  },
-];
+// const mockAdmins: AdminData[] = [
+//   {
+//     id: "1",
+//     name: "John Admin",
+//     email: "john.admin@ecogo.ca",
+//     role: "admin",
+//     status: "active",
+//     createdAt: "2024-01-15",
+//     lastLogin: "2025-11-14T09:30:00",
+//   },
+//   {
+//     id: "4",
+//     name: "Emily Chen",
+//     email: "emily.chen@ecogo.ca",
+//     role: "admin",
+//     status: "active",
+//     createdAt: "2024-01-20",
+//     lastLogin: "2025-11-14T07:20:00",
+//   },
+//   {
+//     id: "6",
+//     name: "Michael Brown",
+//     email: "michael.b@ecogo.ca",
+//     role: "admin",
+//     status: "active",
+//     createdAt: "2024-02-10",
+//     lastLogin: "2025-11-13T18:45:00",
+//   },
+//   {
+//     id: "7",
+//     name: "Sarah Johnson",
+//     email: "sarah.j@ecogo.ca",
+//     role: "admin",
+//     status: "inactive",
+//     createdAt: "2024-03-05",
+//     lastLogin: "2025-10-15T14:20:00",
+//   },
+// ];
 
 export function AdminsPage() {
   // const [admins, setAdmins] = useState<AdminData[]>(mockAdmins);
@@ -227,8 +239,8 @@ export function AdminsPage() {
       email: formData.get("email") as string,
       mobile: formData.get("mobile") as string,
       role: "admin",
-      
-      createdAt: new Date(),
+
+      createdAt: Timestamp.now(),
     };
 
     setAdmins([...admins, newAdmin]);
@@ -242,14 +254,14 @@ export function AdminsPage() {
   };
 
   const stats = [
-    { label: "Total Admins", value: admins.length },
+    { label: "Total Admins", value: admins.length, icon: UserCheck },
     {
       label: "Active",
-      value: admins.filter((a) => a.status === "active").length,
+      value: admins.filter((a) => a.status === "active").length, icon: CheckCircle
     },
     {
       label: "Inactive",
-      value: admins.filter((a) => a.status === "inactive").length,
+      value: admins.filter((a) => a.status === "inactive").length, icon: CircleOff
     },
   ];
 
@@ -258,7 +270,7 @@ export function AdminsPage() {
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 style={{ color: "#2F3A3F" }} className="font-bold text-4xl">
+            <h1 style={{ color: "#2F3A3F" }} className="font-bold text-3xl">
               Admin Dashboard
             </h1>
             <p style={{ color: "#2D2D2D" }} className="text-lg">
@@ -337,22 +349,22 @@ export function AdminsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {stats.map((stat) => (
-            <Card key={stat.label} className="bg-white border-none shadow-md">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: "#D0F5DC" }}
-                  >
-                    <Shield className="w-5 h-5" style={{ color: "#2DB85B" }} />
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={stat.label} className="bg-white border-none shadow-md">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                      <Icon className="w-5 h-5" style={{ color: "#2DB85B" }} />
+                    </div>
+                    <h3 style={{ color: "#2D2D2D" }}>{stat.value}</h3>
                   </div>
-                  <h3 style={{ color: "#2DB85B" }}>{stat.value}</h3>
-                </div>
-                <p style={{ color: "#2D2D2D" }}>{stat.label}</p>
-              </CardContent>
-            </Card>
-          ))}
+                  <p style={{ color: "#2D2D2D" }}>{stat.label}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* <Card> */}
@@ -405,11 +417,13 @@ export function AdminsPage() {
                     >
                       <td className="p-4">
                         <div className="flex items-center gap-2">
-                          <Shield
+                          <UserCheck
                             className="w-4 h-4"
                             style={{ color: "#2DB85B" }}
                           />
-                          <span>{admin.name ?? admin.email ?? "Unknown"}</span>
+                          <span>
+                            {admin.firstName ?? admin.email ?? "Unknown"}
+                          </span>
                         </div>
                       </td>
                       <td className="p-4">{admin.email ?? ""}</td>
@@ -425,11 +439,11 @@ export function AdminsPage() {
                         </Badge>
                       </td>
                       <td className="p-4 text-sm" style={{ color: "#2D2D2D" }}>
-                        {new Date(admin.createdAt).toLocaleDateString()}
+                        {admin.createdAt?.toDate().toLocaleDateString()}
                       </td>
                       <td className="p-4 text-sm" style={{ color: "#2D2D2D" }}>
                         {admin.lastLogin
-                          ? new Date(admin.lastLogin).toLocaleString()
+                          ? admin.lastLogin.toDate().toLocaleString()
                           : "Never"}
                       </td>
                       <td className="p-4">

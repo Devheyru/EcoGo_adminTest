@@ -28,6 +28,9 @@ import {
   Trash2,
   Calendar,
   Activity,
+  CircleOff,
+  CheckCircle,
+  UserCheck,
 } from "lucide-react";
 import { User } from "@/types";
 import { toast } from "sonner";
@@ -49,7 +52,7 @@ const mockOperators: User[] = [
     name: "Jessica Martinez",
     email: "jessica.m@ecogo.ca",
     role: "operator",
-    status: "active",
+    status: "inactive",
     createdAt: "2024-03-15",
     lastLogin: "2025-11-15T07:30:00",
   },
@@ -69,11 +72,10 @@ const mockOperators: User[] = [
     name: "Rachel Green",
     email: "rachel.g@ecogo.ca",
     role: "operator",
-    status: "active",
+    status: "inactive",
     createdAt: "2024-04-20",
     lastLogin: "2025-11-15T06:20:00",
   },
-  
 ];
 
 export function OperatorsPage() {
@@ -93,7 +95,6 @@ export function OperatorsPage() {
     const newOperator: User = {
       id: `${operators.length + 1}`,
       uid: `${operators.length + 1}`,
-  
 
       name: formData.get("name") as string,
       email: formData.get("email") as string,
@@ -116,13 +117,13 @@ export function OperatorsPage() {
     {
       label: "Active",
       value: operators.filter((o) => o.status === "active").length,
-      icon: Activity,
+      icon: CheckCircle,
     },
     {
       label: "Inactive",
       value: operators.filter((o) => o.status === "inactive").length,
 
-      icon: Users,
+      icon: CircleOff,
     },
   ];
 
@@ -131,7 +132,9 @@ export function OperatorsPage() {
       <div className="p-6 space-y-6 ">
         <div className="flex items-center justify-between">
           <div>
-            <h1 style={{ color: "#2F3A3F" }}>Operator Dashboard</h1>
+            <h1 style={{ color: "#2F3A3F" }} className="text-3xl">
+              Operator Dashboard
+            </h1>
             <p style={{ color: "#2D2D2D" }}>
               Manage operators with access to bookings and dispatch
             </p>
@@ -227,27 +230,13 @@ export function OperatorsPage() {
                 className="bg-white border-none shadow-lg w-70"
               >
                 <CardContent className="pt-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: "#D0F5DC" }}
-                    >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center">
                       <Icon className="w-5 h-5" style={{ color: "#2DB85B" }} />
                     </div>
-                    <h3
-                      style={{
-                        color: "#000000",
-                        fontWeight: "bold",
-                        fontSize: "28px",
-                      }}
-                    >
-                      {stat.value}
-                    </h3>
+                    <h3 style={{ color: "#2D2D2D" }}>{stat.value}</h3>
                   </div>
-                  <p
-                    className="mt-6 font-bold text-xl"
-                    style={{ color: "#2D2D2D" }}
-                  >
+                  <p className="mt-6" style={{ color: "#2D2D2D" }}>
                     {stat.label}
                   </p>
                 </CardContent>

@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase/firestore";
 export interface User {
   id: string;
   firstName: string;
@@ -6,11 +7,13 @@ export interface User {
   mobile: string;
   role: "admin" | "operator";
   canOverride?: boolean; // optional, only relevant for admins
-  createdAt: Date;
+  
+
+  createdAt?: Timestamp;
   phone?: string;
 }
 
 export const createUserData = (data: Omit<User, "createdAt">): User => ({
   ...data,
-  createdAt: new Date(),
+  createdAt: Timestamp.now(),
 });
