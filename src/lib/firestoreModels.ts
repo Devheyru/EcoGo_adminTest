@@ -12,12 +12,12 @@ const user = snap.data(); // typed User | undefined
 
 
 import { FirestoreDataConverter } from 'firebase/firestore';
-import { User } from '../../types/user';
-import { Driver } from '../../types/driver';
-import { Ride } from '../../types/ride';
-import { ChatMessage, ChatSummary } from '../../types/chat';
-import { Payment, Payout } from '../../types/payment';
-import { Settings } from '../../types/settings';
+import { User } from '../types/user';
+import { Driver } from '../types/driver';
+import { Ride } from '../types/ride';
+import { ChatMessage, ChatSummary } from '../types/chat';
+import { Payment, Payout } from '../types/payment';
+import { Settings } from '../types/settings';
 
 
 export const userConverter: FirestoreDataConverter<User> = {
