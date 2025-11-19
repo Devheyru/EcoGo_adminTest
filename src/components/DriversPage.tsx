@@ -145,13 +145,28 @@ export function DriversPage() {
       collection(db, "drivers"),
       (snapshot) => {
         setDrivers(
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }))
+          snapshot.docs.map((doc) => {
+            const data = doc.data();
+
+            return {
+              id: doc.id,
+              name: data.name ?? "",
+              email: data.email ?? "",
+              phone: data.phone ?? "",
+              vehicleType: data.vehicleType ?? "",
+              licensePlate: data.licensePlate ?? "",
+              rating: data.rating ?? 0,
+              totalTrips: data.totalTrips ?? 0,
+              status:
+                (data.status as "active" | "offline" | "on-trip") ?? "offline",
+              location: data.location ?? "",
+              active: data.active ?? false,
+            } satisfies Drivers;
+          })
         );
       }
     );
+
 
     //  // 🟠 Real-time: Rides
 
@@ -212,6 +227,7 @@ export function DriversPage() {
       rating: 5.0,
       totalTrips: 0,
       status: "offline",
+      active: false,
       location: formData.get("location") as string,
     };
     setDrivers([...drivers, newDriver]);
