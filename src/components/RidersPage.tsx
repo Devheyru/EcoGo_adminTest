@@ -6,6 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+
+
+
+
+
+
 import {
   Dialog,
   DialogContent,
@@ -46,8 +52,8 @@ interface Rider {
   phone: string;
   totalTrips: number;
   totalSpent: number;
-  memberSince: Timestamp | string;
-  lastTrip: Timestamp | string | null;
+  memberSince: Timestamp;
+  lastTrip: Timestamp | null;
   status: "active" | "inactive" | "suspended";
 }
 interface RideData {
@@ -129,27 +135,42 @@ export function RidersPage() {
     // 🔵 Real-time: Drivers
 
     // 🟢 Real-time: Riders
+    const unsubscribeRides = onSnapshot(collection(db, "rides"), (snapshot) => {
+      setRides(
+        snapshot.docs.map((doc) => ({
+          id: doc.id,
+          pickup: doc.data().pickup ?? "",
+          destination: doc.data().destination ?? "",
+          name: doc.data().name ?? "",
+          fare: doc.data().fare ?? 0,
+          status: doc.data().status ?? "pending",
+          riderId: doc.data().riderId ?? "",
+          driverId: doc.data().driverId ?? "",
+        })) as RideData[]
+      );
+    });
+
+
+    // 🟠 Real-time: Rides
     const unsubscribeRiders = onSnapshot(
       collection(db, "riders"),
       (snapshot) => {
         setRiders(
           snapshot.docs.map((doc) => ({
             id: doc.id,
-            ...doc.data(),
-          }))
+            name: doc.data().name ?? "",
+            email: doc.data().email ?? "",
+            phone: doc.data().phone ?? "",
+            totalTrips: doc.data().totalTrips ?? 0,
+            totalSpent: doc.data().totalSpent ?? 0,
+            memberSince: doc.data().memberSince ?? "",
+            lastTrip: doc.data().lastTrip ?? "",
+            status: doc.data().status ?? "inactive",
+          })) as Rider[]
         );
       }
     );
 
-    // 🟠 Real-time: Rides
-    const unsubscribeRides = onSnapshot(collection(db, "rides"), (snapshot) => {
-      setRides(
-        snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
-      );
-    });
 
     // Return all unsubs so you can close listeners when admin logs out or leaves page
     return () => {
@@ -203,6 +224,7 @@ export function RidersPage() {
       totalTrips: 0,
       totalSpent: 0,
       memberSince: Timestamp.fromDate(new Date()),
+
       lastTrip: null,
       status: "active",
     };
@@ -441,22 +463,20 @@ export function RidersPage() {
                           className="p-4 text-sm"
                           style={{ color: "#2D2D2D" }}
                         >
-                          {(rider.memberSince.toDate
-                            ? rider.memberSince.toDate()
-                            : new Date(rider.memberSince)
-                          ).toLocaleDateString()}
+                          {rider.memberSince
+                            ? rider.memberSince.toDate().toLocaleDateString()
+                            : "N/A"}
                         </td>
+
                         <td
                           className="p-4 text-sm"
                           style={{ color: "#2D2D2D" }}
                         >
                           {rider.lastTrip
-                            ? (rider.lastTrip.toDate
-                                ? rider.lastTrip.toDate()
-                                : new Date(rider.lastTrip)
-                              ).toLocaleDateString()
+                            ? rider.lastTrip.toDate().toLocaleDateString()
                             : "N/A"}
                         </td>
+
                         <td className="p-4">
                           <div className="flex items-center justify-end gap-2">
                             <Button
@@ -561,19 +581,21 @@ export function RidersPage() {
                       Member Since
                     </p>
                     <p>
-                      {(selectedRider.memberSince.toDate
-                        ? selectedRider.memberSince.toDate()
-                        : new Date(selectedRider.memberSince)
-                      ).toLocaleDateString()}
+                      {selectedRider.memberSince
+                        ? selectedRider.memberSince
+                            .toDate()
+                            .toLocaleDateString()
+                        : "N/A"}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm" style={{ color: "#2D2D2D" }}>
                       Last Trip
                     </p>
+                    ``
                     <p>
                       {selectedRider.lastTrip
-                        ? new Date(selectedRider.lastTrip).toLocaleDateString()
+                        ? selectedRider.lastTrip.toDate().toLocaleDateString()
                         : "No trips yet"}
                     </p>
                   </div>
