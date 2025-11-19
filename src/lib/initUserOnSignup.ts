@@ -12,12 +12,12 @@ const user = snap.data(); // typed User | undefined
 
 
 import { FirestoreDataConverter } from 'firebase/firestore';
-import { User } from '../../types/user';
-import { Driver } from '../../types/driver';
-import { Ride } from '../../types/ride';
-import { ChatMessage, ChatSummary } from '../../types/chat';
-import { Payment, Payout } from '../../types/payment';
-import { Settings } from '../../types/settings';
+import { User } from '../types/user';
+import { Driver } from '../types/driver';
+import { Ride } from '../types/ride';
+import { ChatMessage, ChatSummary } from '../types/chat';
+import { Payment, Payout } from '../types/payment';
+import { Settings } from '../types/settings';
 
 
 export const userConverter: FirestoreDataConverter<User> = {
@@ -72,6 +72,18 @@ return { ...snapshot.data(), chatId: snapshot.id } as ChatSummary;
 };
 
 
-export const chatMessageConverter: FirestoreDataConverter<ChatMessage> = {
-// toFirestore(m) {
-// };
+
+
+
+    export const chatMessageConverter: FirestoreDataConverter<ChatMessage> = {
+  toFirestore(m: ChatMessage) {
+    return { ...m }; // MUST RETURN AN OBJECT ✔
+  },
+  fromFirestore(snapshot) {
+    const data = snapshot.data() as any;
+    return {
+      ...data,
+      messageId: snapshot.id,
+    } as ChatMessage;
+  },
+};

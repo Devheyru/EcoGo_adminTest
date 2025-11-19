@@ -3,6 +3,7 @@ import { User, Booking, Analytics, AuditLog, Settings } from '../types';
 export const mockUsers: User[] = [
   {
     id: '1',
+    uid: '1',
     name: 'John Admin',
     email: 'john.admin@ecogo.ca',
     role: 'admin',
@@ -12,6 +13,7 @@ export const mockUsers: User[] = [
   },
   {
     id: '2',
+    uid: '2',
     name: 'Sarah Operator',
     email: 'sarah.operator@ecogo.ca',
     role: 'operator',
@@ -21,6 +23,7 @@ export const mockUsers: User[] = [
   },
   {
     id: '3',
+    uid: '3',
     name: 'Mike Johnson',
     email: 'mike.j@email.com',
     role: 'operator',
@@ -30,6 +33,7 @@ export const mockUsers: User[] = [
   },
   {
     id: '4',
+    uid: '4',
     name: 'Emily Chen',
     email: 'emily.chen@ecogo.ca',
     role: 'admin',
@@ -39,6 +43,7 @@ export const mockUsers: User[] = [
   },
   {
     id: '5',
+    uid: '5',
     name: 'David Brown',
     email: 'david.brown@ecogo.ca',
     role: 'operator',
