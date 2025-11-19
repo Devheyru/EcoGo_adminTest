@@ -73,5 +73,14 @@ return { ...snapshot.data(), chatId: snapshot.id } as ChatSummary;
 
 
 export const chatMessageConverter: FirestoreDataConverter<ChatMessage> = {
-toFirestore(m) {
+  toFirestore(m: ChatMessage) {
+    return { ...m }; // MUST RETURN AN OBJECT ✔
+  },
+  fromFirestore(snapshot) {
+    const data = snapshot.data() as any;
+    return {
+      ...data,
+      messageId: snapshot.id,
+    } as ChatMessage;
+  },
 };
