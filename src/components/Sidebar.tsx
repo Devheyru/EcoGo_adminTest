@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -8,7 +8,6 @@ import {
   Settings,
   FileText,
   LogOut,
-  Shield,
   Menu,
   X,
 } from "lucide-react";
@@ -33,9 +32,22 @@ export function Sidebar({
   onLogout,
 }: SidebarProps) {
   const [isUserMenuExpanded, setIsUserMenuExpanded] = useState(false);
-  const [isOperationsExpanded, setIsOperationsExpanded] = useState(false);
-  const [isSystemExpanded, setIsSystemExpanded] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // for small screens
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    function handleClickAnywhere() {
+      if (isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    }
+
+    // Close sidebar on any click
+    document.addEventListener("mousedown", handleClickAnywhere);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickAnywhere);
+    };
+  }, [isSidebarOpen]);
 
   const adminMenuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -59,14 +71,15 @@ export function Sidebar({
     { id: "operators", label: "Operators", count: 4 },
   ];
 
-  const showUsersMenu = isUserMenuExpanded;
-
   return (
     <>
-      {/* Small screen toggler */}
+      {/* Mobile toggle */}
       <button
-        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded  text-black shadow"
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded text-black shadow"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsSidebarOpen(!isSidebarOpen);
+        }}
       >
         {isSidebarOpen ? (
           <X className="w-4 h-4" />
@@ -75,34 +88,28 @@ export function Sidebar({
         )}
       </button>
 
-      {/* Sidebar */}
       <aside
-        className={`fixed md:static top-0 left-0 h-full z-40 w-50 flex flex-col transition-transform duration-300 ease-in-out
+        className={`fixed md:static top-0 left-0 h-full z-40 w-50 flex flex-col transition-transform duration-300
         bg-[var(--charcoal-dark)] ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        {/* Logo Section */}
+        {/* Logo */}
         <div className="p-6">
-          <div className="flex items-center gap-3">
-            <Image
-              src={logo}
-              alt="EcoGo Logo"
-              width={60}
-              height={60}
-              className="rounded-[10px]"
-            />
-           
-          </div>
+          <Image
+            src={logo}
+            alt="EcoGo Logo"
+            width={60}
+            height={60}
+            className="rounded-[10px]"
+          />
         </div>
 
-        {/* User Info */}
+        {/* Role */}
         <div className="px-6 py-2 mb-2">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm uppercase tracking-wide font-semibold pl-3 text-white">
-              {userRole}
-            </span>
-          </div>
+          <span className="text-sm uppercase tracking-wide font-semibold pl-3 text-white">
+            {userRole}
+          </span>
         </div>
 
         {/* Navigation */}
@@ -111,43 +118,46 @@ export function Sidebar({
             const Icon = item.icon;
             const isActive = currentPage === item.id;
 
-            // Users submenu
             if (item.id === "users") {
               return (
                 <div key={item.id}>
                   <div
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1"
-                    style={{ backgroundColor: "transparent", color: "white" }}
+                    style={{
+                      backgroundColor: "transparent",
+                      color: isActive ? "#2DB85B" : "white",
+                    }}
                   >
                     <input
                       type="checkbox"
                       checked={isUserMenuExpanded}
                       onChange={(e) => setIsUserMenuExpanded(e.target.checked)}
                       className="accent-[#2DB85B] w-4 h-4 cursor-pointer"
-                      aria-label="Toggle Users section"
                     />
-                    <span className="flex-1 text-left cursor-pointer">
-                      {item.label}
-                    </span>
+                    <span className="flex-1 cursor-pointer">{item.label}</span>
                   </div>
-                  {showUsersMenu && (
+
+                  {isUserMenuExpanded && (
                     <div className="ml-4 mb-2 space-y-1">
-                      {userManagementItems.map((subItem) => (
-                        <button
-                          key={subItem.id}
-                          onClick={() => onNavigate(subItem.id)}
-                          className="w-full flex items-center justify-between px-4 py-2 rounded-lg cursor-pointer transition-colors text-sm"
-                          style={{
-                            backgroundColor: "transparent",
-                            color: "white",
-                          }}
-                        >
-                          <span>{subItem.label}</span>
-                          <span className="px-2 py-0.5 rounded text-xs">
-                            {subItem.count}
-                          </span>
-                        </button>
-                      ))}
+                      {userManagementItems.map((sub) => {
+                        const subActive = currentPage === sub.id;
+                        return (
+                          <button
+                            key={sub.id}
+                            onClick={() => onNavigate(sub.id)}
+                            className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm"
+                            style={{
+                              backgroundColor: "transparent",
+                              color: subActive ? "#2DB85B" : "white",
+                            }}
+                          >
+                            <span>{sub.label}</span>
+                            <span className="px-2 py-0.5 text-xs">
+                              {sub.count}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -158,10 +168,10 @@ export function Sidebar({
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition-colors cursor-pointer"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 cursor-pointer"
                 style={{
                   backgroundColor: "transparent",
-                  color: "white",
+                  color: isActive ? "#2DB85B" : "white",
                 }}
               >
                 <Icon className="w-5 h-5" />
@@ -175,15 +185,17 @@ export function Sidebar({
         <div className="p-3">
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg transition-colors"
-            style={{ color: "white", backgroundColor: "gray-500" }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg"
+            style={{
+              backgroundColor: "gray-500",
+              color: "white",
+            }}
           >
             <LogOut className="w-5 h-5" />
             <span>Logout</span>
           </button>
         </div>
 
-        {/* Footer */}
         <div className="p-4 text-center text-xs text-gray-400">
           © 2025 EcoGo Canada
         </div>
