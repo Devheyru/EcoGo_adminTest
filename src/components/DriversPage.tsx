@@ -270,7 +270,7 @@ export function DriversPage() {
   };
 
   return (
-    <div className="bg-white h-full border-none shadow-md rounded-lg p-4">
+    <div className="bg-white min-h-screen border-none shadow-md rounded-lg p-4">
       <div className="flex lg:hidden justify-center">
         <Logo />
       </div>
