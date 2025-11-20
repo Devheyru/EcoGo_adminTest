@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -33,20 +33,21 @@ export function Sidebar({
 }: SidebarProps) {
   const [isUserMenuExpanded, setIsUserMenuExpanded] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClickAnywhere() {
-      if (isSidebarOpen) {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        isSidebarOpen &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(e.target as Node)
+      ) {
         setIsSidebarOpen(false);
       }
     }
 
-    // Close sidebar on any click
-    document.addEventListener("mousedown", handleClickAnywhere);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickAnywhere);
-    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isSidebarOpen]);
 
   const adminMenuItems = [
@@ -76,19 +77,13 @@ export function Sidebar({
       {/* Mobile toggle */}
       <button
         className="md:hidden fixed top-4 left-4 z-50 p-2 rounded text-black shadow"
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsSidebarOpen(!isSidebarOpen);
-        }}
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
       >
-        {isSidebarOpen ? (
-          <X className="w-4 h-4" />
-        ) : (
-          <Menu className="w-4 h-4" />
-        )}
+        {isSidebarOpen ? "" : <Menu className="w-4 h-4" />}
       </button>
 
       <aside
+        ref={sidebarRef}
         className={`fixed md:static top-0 left-0 h-full z-40 w-50 flex flex-col transition-transform duration-300
         bg-[var(--charcoal-dark)] ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
