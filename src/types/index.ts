@@ -38,7 +38,7 @@ export interface Analytics {
   activeVehicles: number;
   bookingsTrend: { date: string; count: number }[];
   revenueTrend: { date: string; revenue: number }[];
-  topRoutes: { route: string; count: number }[];
+  topRoutes: { id: number; route: string; count: number }[];
   vehicleUtilization: { type: string; percentage: number }[];
 }
 

@@ -1,7 +1,15 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, Users, Car, DollarSign } from "lucide-react";
+import {
+  TrendingUp,
+  Users,
+  Car,
+  DollarSign,
+  School,
+  Package,
+  Dog,
+} from "lucide-react";
 import {
   LineChart,
   Line,
@@ -52,6 +60,40 @@ export function DashboardPage() {
     },
   ];
 
+  // NEW SECTION — SERVICE CATEGORY METRICS
+  const serviceStats = [
+    {
+      label: "Individual Rides",
+      value: "58",
+      color: "var(--eco-green)",
+      icon: Car,
+    },
+    {
+      label: "Group / Rideshare",
+      value: "30",
+      color: "var(--charcoal-dark)",
+      icon: Users,
+    },
+    {
+      label: "Pet Delivery",
+      value: "12",
+      color: "var(--eco-green)",
+      icon: Dog,
+    },
+    {
+      label: "Parcel / Courier",
+      value: "40",
+      color: "var(--charcoal-dark)",
+      icon: Package,
+    },
+    {
+      label: "Student Drop-off",
+      value: "37",
+      color: "var(--eco-green)",
+      icon: School,
+    },
+  ];
+
   const COLORS = [
     "var(--eco-green)",
     "var(--charcoal-dark)",
@@ -79,13 +121,13 @@ export function DashboardPage() {
           </p>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid (Total Trips, Drivers, Revenue, Riders) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
               <Card key={stat.label} className="bg-white border-none shadow-lg">
-                <CardContent className="pt-6">
+                <CardContent className="pt-2">
                   <div className="flex items-center justify-between mb-4">
                     <div
                       className="w-12 h-12 rounded-lg flex items-center justify-center"
@@ -103,22 +145,70 @@ export function DashboardPage() {
                       {stat.change}
                     </span>
                   </div>
-                  <h3 className="text-3xl">{stat.value}</h3>
-                  <p
-                    className="text-lg"
-                    style={{ color: "var(--charcoal-dark)" }}
-                  >
-                    {stat.label}
-                  </p>
+                  <div className="flex justify-between">
+                    <p
+                      className="text-lg"
+                      style={{ color: "var(--charcoal-dark)" }}
+                    >
+                      {stat.label}
+                    </p>
+                    <h3 style={{ color: "#2D2D2D" }}>{stat.value}</h3>
+                  </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
 
+        {/* NEW SECTION — SERVICE TYPE BREAKDOWN */}
+        <div>
+          <h2
+            className="font-bold text-xl mb-4"
+            style={{ color: "var(--charcoal-dark)" }}
+          >
+            Service Type Breakdown
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {serviceStats.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Card
+                  key={item.label}
+                  className="bg-white border-none shadow-lg"
+                >
+                  <CardContent className="py-2">
+                    {/* ICON + VALUE ON SAME ROW */}
+                    <div className="flex items-center justify-between ">
+                      <div
+                        className="w-10 h-10 rounded-lg flex items-center justify-center"
+                        style={{ backgroundColor: `${item.color}15` }}
+                      >
+                        <Icon
+                          className="w-5 h-5"
+                          style={{ color: item.color }}
+                        />
+                      </div>
+
+                      <h3 className=" font-normal ">{item.value}</h3>
+                    </div>
+
+                    {/* LABEL ON SEPARATE ROW */}
+                    <p
+                      className="text-sm mt-2 font-medium"
+                      style={{ color: "var(--charcoal-dark)" }}
+                    >
+                      {item.label}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Bookings Trend */}
           <Card className="bg-white border-none shadow-md ">
             <CardHeader className="p-2 text-center">
               <CardTitle className="">Bookings Trend (7 Days)</CardTitle>
@@ -146,7 +236,6 @@ export function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Revenue Trend */}
           <Card className="bg-white border-none shadow-md">
             <CardHeader>
               <CardTitle>Revenue Trend (7 Days)</CardTitle>
@@ -164,10 +253,10 @@ export function DashboardPage() {
                   <Legend />
                   <Bar
                     dataKey="revenue"
-                    fill="#343B41" // normal color
+                    fill="#343B41"
                     name="Revenue ($)"
                     barSize={55}
-                    activeBar={{ fill: "var(--eco-green)" }} // hover color only
+                    activeBar={{ fill: "var(--eco-green)" }}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -177,7 +266,6 @@ export function DashboardPage() {
 
         {/* Charts Row 2 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top Routes */}
           <Card className=" bg-white border-none shadow-md">
             <CardHeader>
               <CardTitle>Top Routes</CardTitle>
@@ -196,14 +284,20 @@ export function DashboardPage() {
                         >
                           {route.route}
                         </span>
-                        <span style={{ color: "black" }}>{route.count}</span>
+                        <span
+                          className={`${
+                            route.id === 1 ? "text-[var(--eco-green)]" : ""
+                          }`}
+                        >
+                          {route.count}
+                        </span>
                       </div>
                       <div
                         className="w-full h-2 rounded-full"
                         style={{ backgroundColor: "white" }}
                       >
                         <div
-                          className="h-full rounded-full transition-all"
+                          className={`h-full rounded-full transition-all`}
                           style={{
                             backgroundColor: "#d3d3d3",
                             width: `${percentage}%`,
@@ -217,7 +311,6 @@ export function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Vehicle Utilization */}
           <Card className="  border-none shadow-md">
             <CardHeader>
               <CardTitle>Vehicle Utilization</CardTitle>
