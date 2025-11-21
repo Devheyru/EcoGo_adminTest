@@ -63,6 +63,12 @@ export function DashboardPage() {
   // NEW SECTION — SERVICE CATEGORY METRICS
   const serviceStats = [
     {
+      label: "Student Drop-off",
+      value: "37",
+      color: "var(--eco-green)",
+      icon: School,
+    },
+    {
       label: "Individual Rides",
       value: "58",
       color: "var(--eco-green)",
@@ -86,12 +92,6 @@ export function DashboardPage() {
       color: "var(--charcoal-dark)",
       icon: Package,
     },
-    {
-      label: "Student Drop-off",
-      value: "37",
-      color: "var(--eco-green)",
-      icon: School,
-    },
   ];
 
   const COLORS = [
@@ -104,7 +104,7 @@ export function DashboardPage() {
   return (
     <div className="bg-white border-none shadow-md rounded-lg p-4">
       <div className="flex lg:hidden justify-center">
-        <Logo />
+        <Logo/>
       </div>
 
       <div className="p-6 space-y-6">

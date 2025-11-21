@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 import Image from "next/image";
 // Assuming logo is imported correctly, e.g., import logo from "../assets/ecogo-logo.png";
 import logo from "../assets/ecogo-logo.png";
@@ -16,6 +16,6 @@ const Logo = () => {
       />
     </div>
   );
-}
+};
 
-export default Logo
+export default Logo;
