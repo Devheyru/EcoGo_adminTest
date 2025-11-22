@@ -183,13 +183,18 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               </div>
 
               {/* Submit Button: Solid brand green */}
-              <Button
-                type="submit"
-                className="w-full text-lg py-4 coursor-pointer hover:brightness-110 transition-all duration-200"
-                style={{ backgroundColor: "var(--eco-green)", color: "white" }}
-              >
-                Sign In
-              </Button>
+              <div className="flex justify-center">
+                <Button
+                  type="submit"
+                  className="  text-lg py-4 coursor-pointer hover:brightness-110 transition-all duration-200"
+                  style={{
+                    backgroundColor: "var(--eco-green)",
+                    color: "white",
+                  }}
+                >
+                  Sign In
+                </Button>
+              </div>
             </form>
 
             {/* Footer Links and Copyright */}
