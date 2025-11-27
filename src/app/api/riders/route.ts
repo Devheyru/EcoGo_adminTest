@@ -155,14 +155,14 @@ export async function POST(
 }
 export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const role = getRole(req);
+    // const role = getRole(req);
 
-    if (!ROLE_PERMISSIONS[role]?.users.read) {
-      return NextResponse.json(
-        { error: "Permission denied (READ)" },
-        { status: 403 }
-      );
-    }
+    // if (!ROLE_PERMISSIONS[role]?.users.read) {
+    //   return NextResponse.json(
+    //     { error: "Permission denied (READ)" },
+    //     { status: 403 }
+    //   );
+    // }
     const snapshot = await adminDb.collection("riders").get();
 
     const riders = snapshot.docs.map((doc) => ({
