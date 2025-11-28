@@ -1,58 +1,88 @@
 "use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Search, Download, AlertTriangle, Info, AlertCircle } from 'lucide-react';
-import { mockAuditLogs } from '@/lib/mockData';
-import { AuditLog, UserRole } from '@/types';
-import ComingSoon from './ComingSoon';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Search,
+  Download,
+  AlertTriangle,
+  Info,
+  AlertCircle,
+  FileText,
+  BarChart3,
+  Calendar,
+  DollarSign,
+  Wallet,
+} from "lucide-react";
+import { mockAuditLogs } from "@/lib/mockData";
+import { AuditLog } from "@/types";
+import { RolePermissions } from "@/types/role";
+import { hasPermission } from "@/lib/roles";
 
 interface ReportsPageProps {
-  userRole: UserRole;
+  userPermissions: RolePermissions;
+  defaultTab?: string;
 }
 
-export function ReportsPage({ userRole }: ReportsPageProps) {
+export function ReportsPage({
+  userPermissions,
+  defaultTab = "audit",
+}: ReportsPageProps) {
   const [logs, setLogs] = useState<AuditLog[]>(mockAuditLogs);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterSeverity, setFilterSeverity] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterSeverity, setFilterSeverity] = useState<string>("all");
+
+  const canViewFinance = hasPermission(userPermissions, "finance", "read");
 
   const filteredLogs = logs.filter((log) => {
     const matchesSearch =
       log.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.details.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = filterSeverity === 'all' || log.severity === filterSeverity;
-    
+
+    const matchesFilter =
+      filterSeverity === "all" || log.severity === filterSeverity;
+
     return matchesSearch && matchesFilter;
   });
 
-  const getSeverityIcon = (severity: AuditLog['severity']) => {
+  const getSeverityIcon = (severity: AuditLog["severity"]) => {
     switch (severity) {
-      case 'critical':
+      case "critical":
         return <AlertTriangle className="w-5 h-5" />;
-      case 'warning':
+      case "warning":
         return <AlertCircle className="w-5 h-5" />;
-      case 'info':
+      case "info":
         return <Info className="w-5 h-5" />;
     }
   };
 
-  const getSeverityColor = (severity: AuditLog['severity']) => {
-    const colors = {
-      critical: { bg: '#FEE2E2', text: '#991B1B' },
-      warning: { bg: '#FEF3C7', text: '#92400E' },
-      info: { bg: '#DBEAFE', text: '#1E40AF' },
-    };
-    return colors[severity];
+  const getSeverityBadgeVariant = (severity: AuditLog["severity"]) => {
+    switch (severity) {
+      case "critical":
+        return "destructive";
+      case "warning":
+        return "secondary";
+      case "info":
+        return "default";
+      default:
+        return "outline";
+    }
   };
 
   const handleExport = () => {
     const csv = [
-      ['ID', 'User', 'Action', 'Timestamp', 'Details', 'Severity'],
+      ["ID", "User", "Action", "Timestamp", "Details", "Severity"],
       ...filteredLogs.map((log) => [
         log.id,
         log.user,
@@ -62,166 +92,283 @@ export function ReportsPage({ userRole }: ReportsPageProps) {
         log.severity,
       ]),
     ]
-      .map((row) => row.join(','))
-      .join('\n');
+      .map((row) => row.join(","))
+      .join("\n");
 
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `audit-logs-${new Date().toISOString()}.csv`;
     a.click();
   };
 
   const stats = [
-    { label: 'Total Logs', value: logs.length, color: '#2DB85B' },
-    { label: 'Critical', value: logs.filter((l) => l.severity === 'critical').length, color: '#991B1B' },
-    { label: 'Warnings', value: logs.filter((l) => l.severity === 'warning').length, color: '#92400E' },
-    { label: 'Info', value: logs.filter((l) => l.severity === 'info').length, color: '#1E40AF' },
+    {
+      label: "Total Logs",
+      value: logs.length,
+      icon: FileText,
+      color: "text-blue-600",
+      bg: "bg-blue-100",
+    },
+    {
+      label: "Critical Issues",
+      value: logs.filter((l) => l.severity === "critical").length,
+      icon: AlertTriangle,
+      color: "text-red-600",
+      bg: "bg-red-100",
+    },
+    {
+      label: "Warnings",
+      value: logs.filter((l) => l.severity === "warning").length,
+      icon: AlertCircle,
+      color: "text-orange-600",
+      bg: "bg-orange-100",
+    },
+    {
+      label: "System Info",
+      value: logs.filter((l) => l.severity === "info").length,
+      icon: Info,
+      color: "text-gray-600",
+      bg: "bg-gray-100",
+    },
   ];
 
-  const isAdmin = userRole === 'admin';
-
   return (
-    // <div className="p-6 space-y-6">
-    //   <div className="flex items-center justify-between">
-    //     <div>
-    //       <h1 style={{ color: '#2F3A3F' }}>
-    //         {isAdmin ? 'Audit Logs' : 'Reports'}
-    //       </h1>
-    //       <p style={{ color: '#2D2D2D' }}>
-    //         {isAdmin
-    //           ? 'View and export system audit logs'
-    //           : 'View limited operational reports'}
-    //       </p>
-    //     </div>
-    //     {isAdmin && (
-    //       <Button
-    //         onClick={handleExport}
-    //         style={{ backgroundColor: '#2DB85B', color: 'white' }}
-    //       >
-    //         <Download className="w-4 h-4 mr-2" />
-    //         Export CSV
-    //       </Button>
-    //     )}
-    //   </div>
+    <div className="p-6 space-y-6 bg-gray-50/50 min-h-screen">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            Reports & Analytics
+          </h1>
+          <p className="text-gray-500 mt-1">
+            System audit logs, operational reports, and analytics
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline">
+            <Calendar className="w-4 h-4 mr-2" />
+            Last 30 Days
+          </Button>
+          <Button
+            onClick={handleExport}
+            className="bg-(--charcoal-dark) text-white"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
+      </div>
 
-    //   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-    //     {stats.map((stat) => (
-    //       <Card key={stat.label}>
-    //         <CardContent className="pt-6">
-    //           <h3 style={{ color: stat.color }}>{stat.value}</h3>
-    //           <p style={{ color: '#2D2D2D' }}>{stat.label}</p>
-    //         </CardContent>
-    //       </Card>
-    //     ))}
-    //   </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {stats.map((stat) => (
+          <Card key={stat.label} className="border-none shadow-sm">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  {stat.label}
+                </p>
+                <h3 className="text-2xl font-bold mt-1">{stat.value}</h3>
+              </div>
+              <div className={`p-3 rounded-full ${stat.bg}`}>
+                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-    //   <Card>
-    //     <CardContent className="pt-6">
-    //       <div className="flex flex-col md:flex-row gap-4">
-    //         <div className="flex-1 relative">
-    //           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: '#2D2D2D' }} />
-    //           <Input
-    //             placeholder="Search logs by user, action, or details..."
-    //             value={searchTerm}
-    //             onChange={(e) => setSearchTerm(e.target.value)}
-    //             className="pl-10"
-    //           />
-    //         </div>
-    //         <div className="flex gap-2">
-    //           {['all', 'critical', 'warning', 'info'].map((severity) => (
-    //             <Button
-    //               key={severity}
-    //               variant={filterSeverity === severity ? 'default' : 'outline'}
-    //               onClick={() => setFilterSeverity(severity)}
-    //               style={
-    //                 filterSeverity === severity
-    //                   ? { backgroundColor: '#2DB85B', color: 'white' }
-    //                   : {}
-    //               }
-    //             >
-    //               {severity.charAt(0).toUpperCase() + severity.slice(1)}
-    //             </Button>
-    //           ))}
-    //         </div>
-    //       </div>
-    //     </CardContent>
-    //   </Card>
+      <Tabs defaultValue={defaultTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsTrigger value="audit">Audit Logs</TabsTrigger>
+          <TabsTrigger value="operational">Operational</TabsTrigger>
+          {canViewFinance && (
+            <TabsTrigger value="financial">Financial</TabsTrigger>
+          )}
+        </TabsList>
 
-    //   {!isAdmin && (
-    //     <Card style={{ backgroundColor: '#FEF3C7', borderColor: '#92400E' }}>
-    //       <CardContent className="pt-6">
-    //         <div className="flex items-start gap-3">
-    //           <AlertCircle className="w-5 h-5 mt-1" style={{ color: '#92400E' }} />
-    //           <div>
-    //             <h4 style={{ color: '#92400E' }}>Limited Access</h4>
-    //             <p style={{ color: '#92400E' }}>
-    //               As an Operator, you have limited access to audit logs. Only recent operational logs are visible. Contact an Admin for full audit log access.
-    //             </p>
-    //           </div>
-    //         </div>
-    //       </CardContent>
-    //     </Card>
-    //   )}
+        <TabsContent value="audit" className="mt-6">
+          <Card className="border-none shadow-md">
+            <CardHeader>
+              <CardTitle>System Audit Logs</CardTitle>
+              <CardDescription>
+                Track all user activities and system events
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Search logs..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  {["all", "critical", "warning", "info"].map((severity) => (
+                    <Button
+                      key={severity}
+                      variant={
+                        filterSeverity === severity ? "default" : "outline"
+                      }
+                      onClick={() => setFilterSeverity(severity)}
+                      className={
+                        filterSeverity === severity
+                          ? "bg-(--charcoal-dark)"
+                          : ""
+                      }
+                      size="sm"
+                    >
+                      {severity.charAt(0).toUpperCase() + severity.slice(1)}
+                    </Button>
+                  ))}
+                </div>
+              </div>
 
-    //   <Card>
-    //     <CardHeader>
-    //       <CardTitle>Recent Activity</CardTitle>
-    //     </CardHeader>
-    //     <CardContent>
-    //       <div className="space-y-3">
-    //         {filteredLogs.map((log) => {
-    //           const severityColor = getSeverityColor(log.severity);
-    //           return (
-    //             <div
-    //               key={log.id}
-    //               className="p-4 rounded-lg border"
-    //               style={{ borderColor: '#E6E6E6' }}
-    //             >
-    //               <div className="flex items-start gap-4">
-    //                 <div
-    //                   className="p-2 rounded-lg"
-    //                   style={{ backgroundColor: severityColor.bg, color: severityColor.text }}
-    //                 >
-    //                   {getSeverityIcon(log.severity)}
-    //                 </div>
+              <div className="space-y-4">
+                {filteredLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="flex items-start gap-4 p-4 rounded-lg border bg-white hover:bg-gray-50 transition-colors"
+                  >
+                    <div
+                      className={`p-2 rounded-full mt-1 ${
+                        log.severity === "critical"
+                          ? "bg-red-100 text-red-600"
+                          : log.severity === "warning"
+                          ? "bg-orange-100 text-orange-600"
+                          : "bg-blue-100 text-blue-600"
+                      }`}
+                    >
+                      {getSeverityIcon(log.severity)}
+                    </div>
 
-    //                 <div className="flex-1">
-    //                   <div className="flex items-center gap-2 mb-2">
-    //                     <h4>{log.action}</h4>
-    //                     <Badge style={{ backgroundColor: severityColor.bg, color: severityColor.text }}>
-    //                       {log.severity}
-    //                     </Badge>
-    //                   </div>
-    //                   <p className="mb-2" style={{ color: '#2D2D2D' }}>{log.details}</p>
-    //                   <div className="flex items-center gap-4 text-sm" style={{ color: '#2D2D2D' }}>
-    //                     <span>User: {log.user}</span>
-    //                     <span>•</span>
-    //                     <span>{new Date(log.timestamp).toLocaleString()}</span>
-    //                     <span>•</span>
-    //                     <span>ID: {log.id}</span>
-    //                   </div>
-    //                 </div>
-    //               </div>
-    //             </div>
-    //           );
-    //         })}
-    //       </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-semibold text-gray-900">
+                          {log.action}
+                        </h4>
+                        <Badge
+                          variant={getSeverityBadgeVariant(log.severity) as any}
+                        >
+                          {log.severity}
+                        </Badge>
+                      </div>
+                      <p className="text-gray-600 mb-2 text-sm">
+                        {log.details}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <span className="font-medium text-gray-700">
+                            User:
+                          </span>{" "}
+                          {log.user}
+                        </span>
+                        <span>•</span>
+                        <span>{new Date(log.timestamp).toLocaleString()}</span>
+                        <span>•</span>
+                        <span className="font-mono">{log.id}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
 
-    //       {filteredLogs.length === 0 && (
-    //         <div className="text-center py-12">
-    //           <Info className="w-12 h-12 mx-auto mb-4" style={{ color: '#E6E6E6' }} />
-    //           <h4 style={{ color: '#2D2D2D' }}>No logs found</h4>
-    //           <p style={{ color: '#2D2D2D' }}>Try adjusting your search or filters</p>
-    //         </div>
-    //       )}
-    //     </CardContent>
-    //   </Card>
-    // </div>
-    <div>
-               <ComingSoon/> 
-            </div>
+                {filteredLogs.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                      <Search className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h4 className="text-lg font-medium text-gray-900">
+                      No logs found
+                    </h4>
+                    <p className="text-gray-500">
+                      Try adjusting your search or filters
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="operational" className="mt-6">
+          <Card className="border-none shadow-md">
+            <CardHeader>
+              <CardTitle>Operational Reports</CardTitle>
+              <CardDescription>
+                Daily trip statistics and driver performance
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-green-100 rounded-lg text-green-600">
+                      <BarChart3 className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-semibold">Trip Volume Analysis</h3>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Daily, weekly, and monthly trip volume trends by region.
+                  </p>
+                </div>
+                <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                      <BarChart3 className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-semibold">Driver Performance</h3>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Acceptance rates, cancellation rates, and average ratings.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {canViewFinance && (
+          <TabsContent value="financial" className="mt-6">
+            <Card className="border-none shadow-md">
+              <CardHeader>
+                <CardTitle>Financial Reports</CardTitle>
+                <CardDescription>
+                  Revenue, commissions, and payout reports
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+                        <DollarSign className="w-5 h-5" />
+                      </div>
+                      <h3 className="font-semibold">Revenue Report</h3>
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      Detailed breakdown of gross revenue and net commissions.
+                    </p>
+                  </div>
+                  <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 bg-orange-100 rounded-lg text-orange-600">
+                        <Wallet className="w-5 h-5" />
+                      </div>
+                      <h3 className="font-semibold">Payout Reconciliation</h3>
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      Driver payout history and status reports.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+      </Tabs>
+    </div>
   );
 }
-

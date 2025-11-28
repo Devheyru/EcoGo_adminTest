@@ -1,4 +1,6 @@
-export type Role = "admin" | "driver" | "rider" | "support"| "operator";
+import { RolePermissions } from "./role";
+
+export type Role = "admin" | "driver" | "rider" | "support" | "operator";
 
 export type UserStatus = "active" | "suspended" | "pending" | "inactive";
 
@@ -27,7 +29,9 @@ export interface User {
   firstName?: string;
   lastName?: string;
   phone?: string;
-  role: Role;
+  roleId: string; // Points to roles collection
+  role?: string; // Legacy/Display role name
+  permissions?: RolePermissions; // Hydrated from role
   status: UserStatus;
   createdAt: string; // ISO string
   lastLogin?: string; // ISO string

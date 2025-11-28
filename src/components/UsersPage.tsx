@@ -1,43 +1,70 @@
 "use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserPlus, Search, Edit, Trash2, Check, X } from 'lucide-react';
-import { mockUsers } from '@/lib/mockData';
-import { User, UserRole } from '@/types';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { UserPlus, Search, Edit, Trash2, Check, X } from "lucide-react";
+import { mockUsers } from "@/lib/mockData";
+import { User, UserRole } from "@/types";
+import { createUser } from "@/app/actions/userActions";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-export function UsersPage() {
-  const [users, setUsers] = useState<User[]>(mockUsers);
-  const [searchTerm, setSearchTerm] = useState('');
+export function UsersPage({ initialUsers = [] }: { initialUsers?: User[] }) {
+  const router = useRouter();
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Sync local state with props when they change (e.g. after revalidatePath)
+  useEffect(() => {
+    setUsers(initialUsers);
+  }, [initialUsers]);
 
   const filteredUsers = users.filter(
     (user) =>
       user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddUser = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddUser = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
-    const newUser: User = {
-      id: `${users.length + 1}`,
-      uid: `${users.length + 1}`,
-      name: formData.get('name') as string,
-      email: formData.get('email') as string,
-      role: formData.get('role') as UserRole,
-      status: 'active',
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setUsers([...users, newUser]);
-    setIsAddDialogOpen(false);
+
+    try {
+      const result = await createUser(null, formData);
+      if (result.success) {
+        toast.success("User created successfully");
+        setIsAddDialogOpen(false);
+        router.refresh(); // Refreshes Server Component data
+      } else {
+        toast.error(result.error || "Failed to create user");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDeleteUser = (id: string) => {
@@ -48,7 +75,10 @@ export function UsersPage() {
     setUsers(
       users.map((user) =>
         user.id === id
-          ? { ...user, status: user.status === 'active' ? 'inactive' : 'active' }
+          ? {
+              ...user,
+              status: user.status === "active" ? "inactive" : "active",
+            }
           : user
       )
     );
@@ -59,12 +89,12 @@ export function UsersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 style={{ color: '#2F3A3F' }}>User Dashboard</h1>
-          <p style={{ color: '#2D2D2D' }}>Manage system users and roles</p>
+          <h1 style={{ color: "#2F3A3F" }}>User Dashboard</h1>
+          <p style={{ color: "#2D2D2D" }}>Manage system users and roles</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button style={{ backgroundColor: '#2DB85B', color: 'white' }}>
+            <Button style={{ backgroundColor: "#2DB85B", color: "white" }}>
               <UserPlus className="w-4 h-4 mr-2" />
               Add User
             </Button>
@@ -93,16 +123,25 @@ export function UsersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="super_admin">Super Admin</SelectItem>
                     <SelectItem value="operator">Operator</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsAddDialogOpen(false)}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" style={{ backgroundColor: '#2DB85B', color: 'white' }}>
-                  Create User
+                <Button
+                  type="submit"
+                  style={{ backgroundColor: "#2DB85B", color: "white" }}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Creating..." : "Create User"}
                 </Button>
               </div>
             </form>
@@ -115,19 +154,25 @@ export function UsersPage() {
         <Card>
           <CardContent className="pt-6">
             <h3>{users.length}</h3>
-            <p style={{ color: '#2D2D2D' }}>Total Users</p>
+            <p style={{ color: "#2D2D2D" }}>Total Users</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <h3>{users.filter((u) => u.status === 'active').length}</h3>
-            <p style={{ color: '#2D2D2D' }}>Active Users</p>
+            <h3>{users.filter((u) => u.status === "active").length}</h3>
+            <p style={{ color: "#2D2D2D" }}>Active Users</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <h3>{users.filter((u) => u.role === 'admin').length}</h3>
-            <p style={{ color: '#2D2D2D' }}>Admins</p>
+            <h3>
+              {
+                users.filter(
+                  (u) => u.role === "admin" || u.role === "super_admin"
+                ).length
+              }
+            </h3>
+            <p style={{ color: "#2D2D2D" }}>Admins</p>
           </CardContent>
         </Card>
       </div>
@@ -136,7 +181,10 @@ export function UsersPage() {
       <Card>
         <CardContent className="pt-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: '#2D2D2D' }} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
+              style={{ color: "#2D2D2D" }}
+            />
             <Input
               placeholder="Search users by name or email..."
               value={searchTerm}
@@ -156,7 +204,9 @@ export function UsersPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr style={{ borderBottomWidth: '1px', borderColor: '#E6E6E6' }}>
+                <tr
+                  style={{ borderBottomWidth: "1px", borderColor: "#E6E6E6" }}
+                >
                   <th className="text-left p-4">Name</th>
                   <th className="text-left p-4">Email</th>
                   <th className="text-left p-4">Role</th>
@@ -168,16 +218,23 @@ export function UsersPage() {
               </thead>
               <tbody>
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} style={{ borderBottomWidth: '1px', borderColor: '#E6E6E6' }}>
+                  <tr
+                    key={user.id}
+                    style={{ borderBottomWidth: "1px", borderColor: "#E6E6E6" }}
+                  >
                     <td className="p-4">{user.name}</td>
                     <td className="p-4">{user.email}</td>
                     <td className="p-4">
                       <Badge
-                        variant={user.role === 'admin' ? 'default' : 'secondary'}
+                        variant={
+                          user.role === "admin" || user.role === "super_admin"
+                            ? "default"
+                            : "secondary"
+                        }
                         style={
-                          user.role === 'admin'
-                            ? { backgroundColor: '#2DB85B', color: 'white' }
-                            : { backgroundColor: '#D0F5DC', color: '#1B6635' }
+                          user.role === "admin" || user.role === "super_admin"
+                            ? { backgroundColor: "#2DB85B", color: "white" }
+                            : { backgroundColor: "#D0F5DC", color: "#1B6635" }
                         }
                       >
                         {user.role}
@@ -185,19 +242,25 @@ export function UsersPage() {
                     </td>
                     <td className="p-4">
                       <Badge
-                        variant={user.status === 'active' ? 'default' : 'secondary'}
+                        variant={
+                          user.status === "active" ? "default" : "secondary"
+                        }
                         style={
-                          user.status === 'active'
-                            ? { backgroundColor: '#D0F5DC', color: '#1B6635' }
-                            : { backgroundColor: '#E6E6E6', color: '#2D2D2D' }
+                          user.status === "active"
+                            ? { backgroundColor: "#D0F5DC", color: "#1B6635" }
+                            : { backgroundColor: "#E6E6E6", color: "#2D2D2D" }
                         }
                       >
                         {user.status}
                       </Badge>
                     </td>
-                    <td className="p-4 text-sm" style={{ color: '#2D2D2D' }}>{user.createdAt}</td>
-                    <td className="p-4 text-sm" style={{ color: '#2D2D2D' }}>
-                      {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never'}
+                    <td className="p-4 text-sm" style={{ color: "#2D2D2D" }}>
+                      {user.createdAt}
+                    </td>
+                    <td className="p-4 text-sm" style={{ color: "#2D2D2D" }}>
+                      {user.lastLogin
+                        ? new Date(user.lastLogin).toLocaleString()
+                        : "Never"}
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
@@ -206,7 +269,7 @@ export function UsersPage() {
                           variant="ghost"
                           onClick={() => handleToggleStatus(user.id)}
                         >
-                          {user.status === 'active' ? (
+                          {user.status === "active" ? (
                             <X className="w-4 h-4" />
                           ) : (
                             <Check className="w-4 h-4" />
@@ -234,4 +297,3 @@ export function UsersPage() {
     </div>
   );
 }
-

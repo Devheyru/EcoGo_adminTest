@@ -1,15 +1,20 @@
-// server/utils/verifyToken.ts (example)
-import * as admin from "firebase-admin";
-import { NextRequest } from "next/server";
+import { adminAuth } from "@/lib/firebase/admin";
+import { DecodedIdToken } from "firebase-admin/auth";
 
-export async function verifyIdTokenFromHeader(req: NextRequest) {
-  const auth = req.headers.get("authorization") || "";
-  if (!auth.startsWith("Bearer ")) return null;
-  const idToken = auth.split(" ")[1];
+export async function verifyToken(
+  req: Request
+): Promise<DecodedIdToken | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return null;
+  }
+
+  const token = authHeader.split("Bearer ")[1];
   try {
-    const decoded = await admin.auth().verifyIdToken(idToken);
-    return decoded.uid;
-  } catch (e) {
+    const decodedToken = await adminAuth.verifyIdToken(token);
+    return decodedToken;
+  } catch (error) {
+    console.error("Error verifying token:", error);
     return null;
   }
 }

@@ -1,32 +1,24 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
-import { ROLE_PERMISSIONS } from "@/lib/permissions";
-import { getRoleById } from "@/lib/getRole";
+import { adminDb, adminAuth } from "@/lib/firebase/admin";
+import { requirePermission } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
-    // 1️⃣ Get user role from token/request
-    const role = getRoleById(req);
-
-    // 🔐 Permission Check (CREATE)
-    if (!ROLE_PERMISSIONS[role]?.users?.create) {
-      return NextResponse.json(
-        { error: "Permission denied (CREATE)" },
-        { status: 403 }
-      );
-    }
+    // Enforce Admin Access
+    await requirePermission("users", "create");
 
     // 2️⃣ Parse Request Body
     const body = await req.json();
+    const roleId = body.roleId || body.role; // Handle both
 
-    if (!body.name || !body.email || !body.roleId) {
+    if (!body.name || !body.email || !roleId) {
       return NextResponse.json(
         { success: false, message: "name, email and roleId are required" },
         { status: 400 }
       );
     }
 
-    // 3️⃣ CHECK IF EMAIL ALREADY EXISTS
+    // 3️⃣ CHECK IF EMAIL ALREADY EXISTS IN FIRESTORE
     const emailQuery = await adminDb
       .collection("users")
       .where("email", "==", body.email)
@@ -35,27 +27,52 @@ export async function POST(req: Request) {
 
     if (!emailQuery.empty) {
       return NextResponse.json(
-        { success: false, message: "Email already exists" },
+        { success: false, message: "Email already exists in database" },
         { status: 409 }
       );
     }
 
-    // 4️⃣ Create Firestore document (Auto ID)
-    const docRef = adminDb.collection("users").doc();
-    const uid = docRef.id;
+    // 4️⃣ Create User in Firebase Auth
+    let uid;
+    try {
+      const userRecord = await adminAuth.createUser({
+        email: body.email,
+        displayName: body.name,
+        phoneNumber: body.phone || undefined,
+        // password: "password123", // Optional: Set a default password or let them reset it
+      });
+      uid = userRecord.uid;
+
+      // Set Custom Claims for Role
+      await adminAuth.setCustomUserClaims(uid, { role: roleId });
+    } catch (authError: any) {
+      // If user already exists in Auth but not DB, we might want to proceed or error
+      if (authError.code === "auth/email-already-exists") {
+        // Try to find the user to link
+        const userRecord = await adminAuth.getUserByEmail(body.email);
+        uid = userRecord.uid;
+      } else {
+        throw authError;
+      }
+    }
+
+    // 5️⃣ Create Firestore document
+    const docRef = adminDb.collection("users").doc(uid);
 
     const userData = {
       uid,
+      id: uid,
       name: body.name,
       email: body.email,
       phone: body.phone || "",
-      roleId: body.roleId,
+      roleId: roleId,
+      role: roleId, // Backward compatibility
       status: body.status || "active",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    // 5️⃣ Save user to DB
+    // 6️⃣ Save user to DB
     await docRef.set(userData);
 
     return NextResponse.json(

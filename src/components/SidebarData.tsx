@@ -17,26 +17,69 @@ import {
   Bell,
   BarChart,
   PieChart,
+  Briefcase,
+  ShieldCheck,
+  Wrench,
 } from "lucide-react";
 
-export const adminMenuItems = [
+export interface MenuItem {
+  id: string;
+  label: string;
+  icon: any;
+  isDropdown: boolean;
+  requiredPermission?: { resource: string; action: string };
+  children?: {
+    id: string;
+    label: string;
+    requiredPermission?: { resource: string; action: string };
+    children?: {
+      id: string;
+      label: string;
+      requiredPermission?: { resource: string; action: string };
+    }[];
+  }[];
+}
+
+export const menuItems: MenuItem[] = [
   {
     id: "dashboard",
-    label: "Admin Dashboard",
+    label: "Dashboard",
     icon: LayoutDashboard,
     isDropdown: false,
+    requiredPermission: { resource: "dashboard", action: "view" },
   },
   {
     id: "users",
     label: "Users",
     icon: Users,
     isDropdown: true,
+    // requiredPermission: { resource: "users", action: "read" }, // Removed to allow access to children (Drivers, Riders) for roles without full user access
     children: [
-      { id: "drivers", label: "Drivers" },
-      { id: "riders", label: "Riders" },
-      { id: "admins", label: "Admins" },
-      { id: "operators", label: "Operators" },
-      { id: "driver-applications", label: "Driver Applications" },
+      {
+        id: "drivers",
+        label: "Drivers",
+        requiredPermission: { resource: "drivers", action: "read" },
+      },
+      {
+        id: "riders",
+        label: "Riders",
+        requiredPermission: { resource: "riders", action: "read" },
+      },
+      {
+        id: "admins",
+        label: "Admins",
+        requiredPermission: { resource: "users", action: "read" },
+      },
+      {
+        id: "operators",
+        label: "Operators",
+        requiredPermission: { resource: "operators", action: "read" },
+      },
+      {
+        id: "driver-applications",
+        label: "Driver Applications",
+        requiredPermission: { resource: "drivers", action: "read" },
+      },
     ],
   },
   {
@@ -44,6 +87,7 @@ export const adminMenuItems = [
     label: "Operations",
     icon: Activity,
     isDropdown: true,
+    requiredPermission: { resource: "operations", action: "read" },
     children: [
       { id: "operations/live-tracking", label: "Live Tracking" },
       { id: "operations/pending-rides", label: "Pending Rides" },
@@ -59,18 +103,28 @@ export const adminMenuItems = [
     label: "Fleet Management",
     icon: Truck,
     isDropdown: true,
+    requiredPermission: { resource: "fleet", action: "read" },
     children: [
       { id: "fleet/vehicles", label: "Vehicles" },
       { id: "fleet/vehicle-types", label: "Vehicle Types" },
       { id: "fleet/vehicle-documents", label: "Vehicle Documents" },
       { id: "fleet/maintenance", label: "Maintenance Logs" },
+      { id: "fleet/inventory", label: "Inventory & Parts" },
     ],
+  },
+  {
+    id: "bookings",
+    label: "Bookings",
+    icon: Calendar,
+    isDropdown: false,
+    requiredPermission: { resource: "rides", action: "read" },
   },
   {
     id: "finance",
     label: "Finance & Payments",
     icon: DollarSign,
     isDropdown: true,
+    requiredPermission: { resource: "finance", action: "read" },
     children: [
       { id: "finance/driver-payouts", label: "Driver Payouts" },
       { id: "finance/rider-payments", label: "Rider Payments" },
@@ -80,12 +134,26 @@ export const adminMenuItems = [
       { id: "transactions", label: "Transactions" },
     ],
   },
-
+  {
+    id: "hr",
+    label: "HR & Workforce",
+    icon: Briefcase,
+    isDropdown: true,
+    requiredPermission: { resource: "hr", action: "read" },
+    children: [
+      { id: "hr/employees", label: "Employees" },
+      { id: "hr/shifts", label: "Shifts & Scheduling" },
+      { id: "hr/attendance", label: "Time & Attendance" },
+      { id: "hr/training", label: "Training & Certs" },
+      { id: "hr/performance", label: "Performance" },
+    ],
+  },
   {
     id: "support",
     label: "Complaints & Support",
     icon: MessageSquare,
     isDropdown: true,
+    requiredPermission: { resource: "support", action: "read" },
     children: [
       { id: "support/ride-complaints", label: "Ride Complaints" },
       { id: "support/driver-complaints", label: "Driver Complaints" },
@@ -94,10 +162,24 @@ export const adminMenuItems = [
     ],
   },
   {
+    id: "it_support",
+    label: "IT & Systems",
+    icon: Wrench,
+    isDropdown: true,
+    requiredPermission: { resource: "it", action: "read" },
+    children: [
+      { id: "it/devices", label: "Device Management" },
+      { id: "it/system-health", label: "System Health" },
+      { id: "it/integrations", label: "Integrations" },
+      { id: "it/logs", label: "System Logs" },
+    ],
+  },
+  {
     id: "marketing",
     label: "Marketing Tools",
     icon: Megaphone,
     isDropdown: true,
+    requiredPermission: { resource: "marketing", action: "read" },
     children: [
       { id: "marketing/referral", label: "Referral Program" },
       { id: "marketing/rewards", label: "Reward Points" },
@@ -106,10 +188,24 @@ export const adminMenuItems = [
     ],
   },
   {
+    id: "reports",
+    label: "Reports",
+    icon: BarChart,
+    isDropdown: true,
+    requiredPermission: { resource: "reports", action: "view" },
+    children: [
+      { id: "reports/ride-reports", label: "Ride Reports" },
+      { id: "reports/driver-reports", label: "Driver Reports" },
+      { id: "reports/revenue-reports", label: "Revenue Reports" },
+      { id: "reports/payout-reports", label: "Payout Reports" },
+    ],
+  },
+  {
     id: "settings",
     label: "Settings",
     icon: Settings,
     isDropdown: true,
+    requiredPermission: { resource: "settings", action: "read" },
     children: [
       {
         id: "settings/general",
@@ -120,36 +216,14 @@ export const adminMenuItems = [
         ],
       },
       { id: "settings/config", label: "Configuration" },
-      { id: "settings/pricing", label: "Pricing Rules" },
+      {
+        id: "settings/pricing",
+        label: "Pricing Rules",
+        requiredPermission: { resource: "pricing", action: "read" },
+      },
       { id: "settings/notifications", label: "Notification Settings" },
       { id: "settings/api", label: "API Keys" },
       { id: "settings/audit", label: "Audit Logs" },
     ],
   },
-  {
-    id: "reports",
-    label: "Reports",
-    icon: BarChart,
-    isDropdown: true,
-    children: [
-      { id: "reports/ride-reports", label: "Ride Reports" },
-      { id: "reports/driver-reports", label: "Driver Reports" },
-      { id: "reports/revenue-reports", label: "Revenue Reports" },
-      { id: "reports/payout-reports", label: "Payout Reports" },
-    ],
-  },
 ];
-
-
-export const operatorMenuItems = [
-  {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    isDropdown: false,
-  },
-  { id: "bookings", label: "Bookings", icon: Calendar, isDropdown: false },
-  { id: "reports", label: "Reports", icon: FileText, isDropdown: false },
-];
-
-export default adminMenuItems;

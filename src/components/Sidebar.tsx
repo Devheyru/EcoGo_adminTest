@@ -16,27 +16,34 @@ import {
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { adminMenuItems, operatorMenuItems } from "./SidebarData";
-
-type UserRole = "admin" | "operator";
+import { menuItems } from "./SidebarData";
+import { RolePermissions } from "@/types/role";
+import { hasPermission } from "@/lib/roles";
 
 interface SidebarProps {
-  currentPage: string;
-  userRole: UserRole;
+  userPermissions: RolePermissions;
   userName: string;
-  onLogout: () => void;
 }
 
 import Image from "next/image";
-import logo from "../app/assets/ecogo-logo.png";
+import logo from "../../src/assets/ecogo-logo.png";
+import { usePathname } from "next/navigation";
 
-export function Sidebar({
-  currentPage,
-  userRole,
-  userName,
-  onLogout,
-}: SidebarProps) {
+export function Sidebar({ userPermissions, userName }: SidebarProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  // Remove leading slash for currentPage matching logic
+  const currentPage = pathname?.replace(/^\//, "") || "dashboard";
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/session", { method: "DELETE" });
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
 
   const handleLinkClick = (e: React.MouseEvent, href: string) => {
     if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
@@ -72,8 +79,46 @@ export function Sidebar({
     setExpandedMenus((prev) => ({ ...prev, [menuId]: !prev[menuId] }));
   };
 
-  // RESTORED: the original version before merge
-  const menuItems = userRole === "admin" ? adminMenuItems : operatorMenuItems;
+  // Filter menu items based on user permissions
+  const filteredMenuItems = menuItems
+    .filter((item) => {
+      if (!item.requiredPermission) return true;
+      return hasPermission(
+        userPermissions,
+        item.requiredPermission.resource,
+        item.requiredPermission.action
+      );
+    })
+    .map((item) => {
+      // Deep copy to avoid mutating original
+      const newItem = { ...item };
+      if (newItem.children) {
+        newItem.children = newItem.children
+          .filter((child) => {
+            if (!child.requiredPermission) return true;
+            return hasPermission(
+              userPermissions,
+              child.requiredPermission.resource,
+              child.requiredPermission.action
+            );
+          })
+          .map((child) => {
+            const newChild = { ...child };
+            if (newChild.children) {
+              newChild.children = newChild.children.filter((grandChild) => {
+                if (!grandChild.requiredPermission) return true;
+                return hasPermission(
+                  userPermissions,
+                  grandChild.requiredPermission.resource,
+                  grandChild.requiredPermission.action
+                );
+              });
+            }
+            return newChild;
+          });
+      }
+      return newItem;
+    });
 
   return (
     <>
@@ -89,7 +134,7 @@ export function Sidebar({
       {/* Mobile Close Button */}
       {isSidebarOpen && (
         <button
-          className="md:hidden fixed top-4 right-4 z-[60] p-2 rounded text-white"
+          className="md:hidden fixed top-4 right-4 z-60 p-2 rounded text-white"
           onClick={() => setIsSidebarOpen(false)}
         >
           <X className="w-6 h-6" />
@@ -99,7 +144,7 @@ export function Sidebar({
       <aside
         ref={sidebarRef}
         className={`fixed md:static top-0 left-0 h-full z-40 w-64 flex flex-col transition-transform duration-300
-        bg-[var(--charcoal-dark)] ${
+        bg-(--charcoal-dark) ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
@@ -116,7 +161,7 @@ export function Sidebar({
 
         {/* Navigation */}
         <nav className="flex-1 px-3 overflow-y-auto">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentPage === item.id;
             const isExpanded = !!expandedMenus[item.id];
@@ -292,7 +337,7 @@ export function Sidebar({
         {/* Logout */}
         <div className="p-3">
           <button
-            onClick={onLogout}
+            onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white"
             style={{ backgroundColor: "gray" }}
           >

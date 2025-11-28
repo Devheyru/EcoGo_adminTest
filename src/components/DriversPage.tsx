@@ -2,9 +2,8 @@
 import { useRouter } from "next/navigation";
 
 import { auth, db } from "../firebase/config";
+import { collection, onSnapshot } from "firebase/firestore";
 import { useEffect } from "react";
-
-import { onAuthStateChanged } from "firebase/auth";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,13 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  doc,
-  getDoc,
-  onSnapshot,
-  collection,
-  getDocs,
-} from "firebase/firestore";
+// Using API GET + polling for drivers
 import {
   Search,
   UserPlus,
@@ -89,13 +82,17 @@ interface Drivers {
   email: string;
   phone: string;
   vehicleType: string;
+  vehicleModel: string;
+  vehicleColor: string;
   licensePlate: string;
   rating: number;
   totalTrips: number;
-  status: "active" | "offline" | "on-trip";
+  status: "active" | "inactive" | "suspended";
   location: string;
-  active: boolean;
+  isOnline: boolean;
 }
+
+// Using API routes for driver creation/fetching. Server Actions removed.
 
 export function DriversPage() {
   const [drivers, setDrivers] = useState<Drivers[]>([]);
@@ -105,7 +102,7 @@ export function DriversPage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
-  const [newDriverVehicleType, setNewDriverVehicleType] = useState("");
+  const [newDriverVehicleType, setNewDriverVehicleType] = useState("car");
   const [riders, setRiders] = useState<Rider[]>([]);
   const [adminData, setAdminData] = useState<AdminData | null>(null);
 
@@ -118,43 +115,77 @@ export function DriversPage() {
   const [rides, setRides] = useState<RideData[]>([]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        router.push("/login");
-        return;
+    // 🔵 Real-time: Drivers - REPLACED with Server Action for Join
+    const unsubscribeDrivers = onSnapshot(
+      collection(db, "drivers"),
+      (snapshot) => {
+        setDrivers(
+          snapshot.docs.map((doc) => {
+            const data = doc.data() as any;
+
+            // Normalize status to the UI's expected values
+            let status: Drivers["status"] = "inactive";
+            if (data.status) {
+              const raw = String(data.status).toLowerCase();
+              if (raw === "active") status = "active";
+              else if (raw === "suspended") status = "suspended";
+              else if (raw === "offline" || raw === "inactive")
+                status = "inactive";
+              else if (raw === "on-trip") status = "active"; // treat on-trip as active
+            } else if (data.isOnline) {
+              status = "active";
+            }
+
+            return {
+              id: doc.id,
+              name: data.name ?? "",
+              email: data.email ?? "",
+              phone: data.phone ?? "",
+              vehicleType: data.vehicleType ?? "",
+              vehicleModel: data.vehicleModel ?? "",
+              vehicleColor: data.vehicleColor ?? "",
+              licensePlate: data.licensePlate ?? "",
+              rating: data.rating ?? 0,
+              totalTrips: data.totalTrips ?? 0,
+              status,
+              location: data.location ?? "",
+              isOnline: !!data.isOnline,
+            } as Drivers;
+          })
+        );
       }
+    );
 
-      const adminRef = doc(db, "admins", user.uid);
-      const adminSnap = await getDoc(adminRef);
-
-      if (adminSnap.exists()) {
-        const data = adminSnap.data();
-
-        setAdminData({
-          id: user.uid,
-          firstName: data.firstName ?? "",
-          lastName: data.lastName ?? "",
-          email: data.email ?? "",
-          role: data.role ?? "",
-          mobile: data.mobile ?? "",
-          canOverride: data.canOverride ?? false,
-        });
-
-        loadAllData();
-      } else {
-        router.push("/login");
-      }
-
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    return () => {
+      unsubscribeDrivers();
+    };
   }, []);
 
+  /*
   const loadAllData = () => {
-    // 🔵 Real-time: Drivers
+    // 🔵 Real-time: Drivers - REPLACED with Server Action for Join
+    getDriversAction().then((mergedDrivers: MergedDriver[]) => {
+      const mappedDrivers: Drivers[] = mergedDrivers.map((md) => ({
+        id: md.id,
+        name: md.driver.name || md.user?.name || "Unknown",
+        email: md.user?.email || md.driver.email || "",
+        phone: md.driver.phone || "",
+        vehicleType: md.vehicle?.type || md.driver.vehicleType || "Unknown",
+        licensePlate: md.vehicle?.plateNumber || md.driver.licensePlate || "NO-PLATE",
+        rating: md.driver.rating || 0,
+        totalTrips: md.driver.totalTrips || 0,
+        status: md.driver.status || "inactive",
+        location: md.driver.location || "Unknown",
+        isOnline: md.driver.isOnline || false,
+      }));
+      setDrivers(mappedDrivers);
+    });
+    */
 
-    // 🟢 Real-time: Riders
+  // 🟢 Real-time: Riders
+  const unsubscribeDrivers = () => {}; // No-op since we use server action now
+
+  /* 
     const unsubscribeDrivers = onSnapshot(
       collection(db, "drivers"),
       (snapshot) => {
@@ -181,14 +212,17 @@ export function DriversPage() {
         );
       }
     );
+    */
 
-    //  // 🟠 Real-time: Rides
+  //  // 🟠 Real-time: Rides
 
-    // Return all unsubs so you can close listeners when admin logs out or leaves page
+  // Return all unsubs so you can close listeners when admin logs out or leaves page
+  /*
     return () => {
       unsubscribeDrivers();
     };
   };
+  */
 
   const filteredDrivers = drivers.filter(
     (driver) =>
@@ -200,10 +234,10 @@ export function DriversPage() {
   const getStatusColor = (status: Drivers["status"]) => {
     const colors = {
       active: { bg: "#D0F5DC", text: "#1B6635" },
-      offline: { bg: "#E6E6E6", text: "#2D2D2D" },
-      "on-trip": { bg: "#2DB85B", text: "white" },
+      inactive: { bg: "#E6E6E6", text: "#2D2D2D" },
+      suspended: { bg: "#FEE2E2", text: "#DC2626" },
     };
-    return colors[status];
+    return colors[status] || colors.inactive;
   };
 
   const stats = [
@@ -214,27 +248,27 @@ export function DriversPage() {
       color: "text-black",
     },
     {
-      label: "Active Now",
+      label: "Active Accounts",
       value: drivers.filter((d) => d.status === "active").length,
       icon: TrendingUp,
       color: "text-black",
     },
     {
-      label: "On Trip",
-      value: drivers.filter((d) => d.status === "on-trip").length,
+      label: "Suspended",
+      value: drivers.filter((d) => d.status === "suspended").length,
       icon: Calendar,
-      color: "text-green-500",
+      color: "text-red-500",
     },
 
     {
-      label: "Online",
-      value: drivers.filter((d) => d.active).length,
+      label: "Online Now",
+      value: drivers.filter((d) => d.isOnline).length,
       icon: Wifi,
       color: "text-green-500",
     },
     {
       label: "Offline",
-      value: drivers.filter((d) => d.status === "offline").length,
+      value: drivers.filter((d) => !d.isOnline).length,
       icon: WifiOff,
       color: "text-yellow-500",
     },
@@ -245,25 +279,46 @@ export function DriversPage() {
     0
   );
 
-  const handleAddDriver = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddDriver = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const newDriver: Drivers = {
-      id: `D${String(drivers.length + 1).padStart(3, "0")}`,
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      phone: formData.get("phone") as string,
-      vehicleType: newDriverVehicleType,
-      licensePlate: formData.get("licensePlate") as string,
-      rating: 5.0,
-      totalTrips: 0,
-      status: "offline",
-      active: false,
-      location: formData.get("location") as string,
+    formData.set("vehicleType", newDriverVehicleType);
+
+    // Convert FormData to JSON for API
+    const data = {
+      name: formData.get("name"),
+      email: formData.get("email"),
+      phone: formData.get("phone"),
+      vehicleType: formData.get("vehicleType"),
+      vehicleModel: formData.get("vehicleModel"),
+      vehicleColor: formData.get("vehicleColor"),
+      licensePlate: formData.get("licensePlate"),
+      location: formData.get("location"),
     };
-    setDrivers([...drivers, newDriver]);
-    setIsAddDialogOpen(false);
-    toast.success(`Driver ${newDriver.name} added successfully!`);
+
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const response = await fetch("/api/drivers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setIsAddDialogOpen(false);
+        toast.success(`Driver ${data.name} added successfully!`);
+      } else {
+        toast.error(result.error || "Failed to add driver");
+      }
+    } catch (error) {
+      console.error("Error adding driver:", error);
+      toast.error("An unexpected error occurred");
+    }
   };
 
   const handleSendMessage = () => {
@@ -284,7 +339,7 @@ export function DriversPage() {
       <div className="p-6 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="w-full">
-            <h1 className="font-bold text-1xl sm:text-3xl bg-[var(--charcoal-dark)] text-white p-1 rounded-md w-full">
+            <h1 className="font-bold text-1xl sm:text-3xl bg-(--charcoal-dark) text-white p-1 rounded-md w-full">
               Drivers Dashboard
             </h1>
             <p
@@ -306,10 +361,9 @@ export function DriversPage() {
             <DialogContent
               className="max-w-md p-6 rounded-lg shadow-xl
         text-[#1E1E1E] bg-white
-        !bg-[white]
         border border-[#ffffff]"
               style={{
-                backgroundColor: "#1E1E1E",
+                backgroundColor: "#ffffff",
                 backdropFilter: "none",
                 WebkitBackdropFilter: "none",
               }}
@@ -363,12 +417,31 @@ export function DriversPage() {
                       <SelectValue placeholder="Select vehicle type" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]">
-                      <SelectItem value="EV Sedan">EV Sedan</SelectItem>
-                      <SelectItem value="EV SUV">EV SUV</SelectItem>
-                      <SelectItem value="EV Compact">EV Compact</SelectItem>
-                      <SelectItem value="EV Van">EV Van</SelectItem>
+                      <SelectItem value="car">Car</SelectItem>
+                      <SelectItem value="bajaj">Bajaj</SelectItem>
+                      <SelectItem value="bike">Bike</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="vehicleModel">Vehicle Model</Label>
+                  <Input
+                    id="vehicleModel"
+                    name="vehicleModel"
+                    placeholder="e.g. Toyota Camry"
+                    required
+                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="vehicleColor">Vehicle Color</Label>
+                  <Input
+                    id="vehicleColor"
+                    name="vehicleColor"
+                    placeholder="e.g. White"
+                    required
+                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="licensePlate">License Plate</Label>
@@ -447,7 +520,7 @@ export function DriversPage() {
             />
           </div>
         </Card>
-        <CardTitle className="bg-[var(--charcoal-dark)] text-white p-1 rounded-md w-full">
+        <CardTitle className="bg-(--charcoal-dark) text-white p-1 rounded-md w-full">
           All Drivers
         </CardTitle>
 
@@ -464,7 +537,23 @@ export function DriversPage() {
                     <div className="flex-1">
                       <CardTitle className="flex items-center gap-2">
                         {driver.name}
-                        <Badge>{driver.status}</Badge>
+                        <Badge
+                          style={{
+                            backgroundColor: statusColor.bg,
+                            color: statusColor.text,
+                          }}
+                        >
+                          {driver.status}
+                        </Badge>
+                        {driver.isOnline ? (
+                          <Badge className="bg-green-500 text-white">
+                            Online
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-gray-400 text-white">
+                            Offline
+                          </Badge>
+                        )}
                       </CardTitle>
                       <p className="text-sm mt-1" style={{ color: "#2D2D2D" }}>
                         {driver.email}
@@ -541,7 +630,6 @@ export function DriversPage() {
         <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
           <DialogContent
             className="max-w-md p-6 rounded-lg shadow-xl text-[#1E1E1E] bg-white
-        !bg-[white]
         border border-[#ffffff]"
           >
             <DialogHeader>
@@ -559,7 +647,14 @@ export function DriversPage() {
                       {selectedDriver.email}
                     </p>
                   </div>
-                  <Badge>{selectedDriver.status}</Badge>
+                  <div className="flex flex-col gap-1 items-end">
+                    <Badge>{selectedDriver.status}</Badge>
+                    {selectedDriver.isOnline ? (
+                      <Badge className="bg-green-500 text-white">Online</Badge>
+                    ) : (
+                      <Badge className="bg-gray-400 text-white">Offline</Badge>
+                    )}
+                  </div>
                 </div>
 
                 <div
@@ -584,7 +679,11 @@ export function DriversPage() {
                       Vehicle Information
                     </p>
                     <p>
-                      {selectedDriver.vehicleType} -{" "}
+                      {selectedDriver.vehicleColor}{" "}
+                      {selectedDriver.vehicleModel}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {selectedDriver.vehicleType} •{" "}
                       {selectedDriver.licensePlate}
                     </p>
                   </div>
@@ -606,7 +705,6 @@ export function DriversPage() {
         >
           <DialogContent
             className="max-w-md  text-[#1E1E1E] bg-white
-        !bg-[white]
         border border-[#ffffff]"
           >
             <DialogHeader>

@@ -1,4 +1,5 @@
 import { User } from "./user";
+import { Vehicle } from "./vehicle";
 
 export interface CarInfo {
   make?: string;
@@ -31,4 +32,29 @@ export interface Driver {
   documents?: string[]; // storage paths
   backgroundCheckStatus?: "pending" | "clear" | "failed";
   createdAt?: string; // ISO
+}
+
+export interface DriverDocument {
+  id: string;
+  name: string;
+  phone: string;
+  role: string;
+  status: "active" | "inactive" | "suspended";
+  isOnline: boolean;
+  licenseNumber: string;
+  licenseExpiry: string;
+  rating: number;
+  totalTrips: number;
+  userId: string;
+  vehicleId: string;
+  updatedAt: any;
+  [key: string]: any;
+}
+
+export interface MergedDriver {
+  id: string;
+  driver: DriverDocument;
+  user: User | null;
+  vehicle: Vehicle | null;
+  permissions: any;
 }

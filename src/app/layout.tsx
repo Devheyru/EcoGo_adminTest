@@ -3,9 +3,6 @@ import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import RootShell from "@/components/RootShell";
-import TopActionsBar from "@/components/TopActionsBar";
-import UserCreate from "@/components/UserCreate";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -40,9 +37,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TopActionsBar/>
-          <RootShell />
-          {/* <UserCreate/> */}
+          {children}
           <Toaster />
         </ThemeProvider>
       </body>

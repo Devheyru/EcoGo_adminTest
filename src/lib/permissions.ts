@@ -1,12 +1,38 @@
 export const ROLE_PERMISSIONS = {
   super_admin: {
-    users: { create: true, read: true, update: true, delete: true },
+    // users: { create: false, read: true, update: true, delete: true },
+    // vehicles: {
+    //   create: false,
+    //   read: true,
+    //   update: true,
+    //   delete: true,
+    //   approve: true,
+    // },
+    // drivers: {
+    //   create: false,
+    //   read: true,
+    //   update: true,
+    //   delete: true,
+    // },
   },
 
   admin: {
-    users: { create: true, read: true, update: true, delete: false },
+    // users: { create: false, read: true, update: true, delete: false },
+    // vehicles: {
+    //   create: false,
+    //   read: true,
+    //   update: true,
+    //   delete: false,
+    //   approve: false,
+    // },
+    // drivers: {
+    //   create: false,
+    //   read: true,
+    //   update: true,
+    //   delete: false,
+    //   approve: false,
+    // },
   },
-
   hr: {
     users: { create: true, read: true, update: true, delete: false },
   },

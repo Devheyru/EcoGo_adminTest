@@ -5,7 +5,15 @@ export * from "./chat";
 export * from "./payment";
 export * from "./settings";
 
-export type UserRole = "admin" | "operator";
+export type UserRole =
+  | "admin"
+  | "operator"
+  | "support"
+  | "driver"
+  | "rider"
+  | "finance"
+  | "hr"
+  | "it_support";
 
 export interface Users {
   id: string;

@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 // Assuming logo is imported correctly, e.g., import logo from "../assets/ecogo-logo.png";
-import logo from "../app/assets/ecogo-logo.png";
+import logo from "../../src/assets/ecogo-logo.png";
 
 const Logo = () => {
   return (

@@ -37,7 +37,14 @@ import { User } from "../models/admin";
 import { onAuthStateChanged } from "firebase/auth";
 import { Timestamp } from "firebase/firestore";
 
-import { doc, getDoc, onSnapshot, collection } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  onSnapshot,
+  collection,
+  query,
+  where,
+} from "firebase/firestore";
 import Logo from "./Logo";
 
 // --- Interfaces ---
@@ -97,16 +104,39 @@ export function AdminsPage() {
         return;
       }
 
+      // Check 'admins' collection first (legacy)
       const adminRef = doc(db, "admins", user.uid);
       const adminSnap = await getDoc(adminRef);
 
       if (adminSnap.exists()) {
         setAdmin({ id: user.uid, ...adminSnap.data() } as User);
         loadAllData();
-      } else {
-        router.push("/");
+        setLoading(false);
+        return;
       }
 
+      // Fallback: Check 'users' collection
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        // Allow if role is admin or super_admin
+        if (
+          userData.role === "admin" ||
+          userData.role === "super_admin" ||
+          userData.roleId === "admin" ||
+          userData.roleId === "super_admin"
+        ) {
+          setAdmin({ id: user.uid, ...userData } as User);
+          loadAllData();
+          setLoading(false);
+          return;
+        }
+      }
+
+      // If neither, redirect
+      router.push("/");
       setLoading(false);
     });
 
@@ -116,17 +146,23 @@ export function AdminsPage() {
   // --- Real-time Data Listeners ---
   const loadAllData = () => {
     // 🔵 Real-time: Admins
-    const unsubscribeAdmins = onSnapshot(
-      collection(db, "admins"),
-      (snapshot) => {
-        setAdmins(
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as AdminData[] // Explicitly cast to AdminData[]
-        );
-      }
+    const q = query(
+      collection(db, "users"),
+      where("roleId", "in", ["admin", "super_admin"])
     );
+
+    const unsubscribeAdmins = onSnapshot(q, (snapshot) => {
+      setAdmins(
+        snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            role: data.role || data.roleId,
+          };
+        }) as AdminData[]
+      );
+    });
 
     // 🔵 Real-time: Drivers
     const unsubscribeDrivers = onSnapshot(

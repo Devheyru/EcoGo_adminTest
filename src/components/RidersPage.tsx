@@ -7,11 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
-
-
-
-
-
 import {
   Dialog,
   DialogContent,
@@ -102,7 +97,7 @@ export function RidersPage() {
 
       const adminRef = doc(db, "admins", user.uid);
       const adminSnap = await getDoc(adminRef);
-      
+
       // useEffect(() => {
       // 	 const unsubscribe = onAuthStateChanged(auth, async (user) => {
       // 	 	 if (!user) {
@@ -176,7 +171,6 @@ export function RidersPage() {
       );
     });
 
-
     // 🟠 Real-time: Rides
     const unsubscribeRiders = onSnapshot(
       collection(db, "riders"),
@@ -196,7 +190,6 @@ export function RidersPage() {
         );
       }
     );
-
 
     // Return all unsubs so you can close listeners when admin logs out or leaves page
     return () => {
