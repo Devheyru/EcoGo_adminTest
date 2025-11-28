@@ -15,7 +15,7 @@ export async function GET(
       );
     }
 
-    // --- Get driver document
+    // Fetch driver profile
     const driverRef = adminDb.collection("drivers").doc(id);
     const driverSnap = await driverRef.get();
 
@@ -26,59 +26,67 @@ export async function GET(
       );
     }
 
-    // --- Query trips completed
-    const completedTripsSnap = await adminDb
+    const driverData = driverSnap.data();
+
+    // Prepare timestamp conversion
+    const convertTS = (ts: any) =>
+      ts && ts.toDate ? ts.toDate().toISOString() : null;
+
+    // Get all driver rides
+    const ridesSnap = await adminDb
       .collection("rides")
       .where("driverId", "==", id)
-      .where("status", "==", "completed")
       .get();
 
-    const totalCompleted = completedTripsSnap.size;
+    let totalCompleted = 0;
+    let totalEarnings = 0;
+    let ongoing = 0;
+    let cancelled = 0;
+    let todayCompleted = 0;
 
-    // --- Calculate earnings from trips
-    let totalFare = 0;
-    completedTripsSnap.forEach((doc) => {
-      const d = doc.data() as any;
-      totalFare += d.fare || 0;
-    });
-
-    // --- Today stats
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const todayTripsSnap = await adminDb
-      .collection("rides")
-      .where("driverId", "==", id)
-      .where("completedAt", ">=", today)
-      .where("status", "==", "completed")
-      .get();
+    ridesSnap.forEach((doc) => {
+      const r = doc.data();
 
-    const todayCompleted = todayTripsSnap.size;
+      if (r.status === "completed") {
+        totalCompleted++;
+        totalEarnings += r.fare || 0;
 
-    // --- Other statuses
-    const ongoingSnap = await adminDb
-      .collection("rides")
-      .where("driverId", "==", id)
-      .where("status", "==", "ongoing")
-      .get();
+        const comp = r.completedAt?.toDate();
+        if (comp && comp >= today) {
+          todayCompleted++;
+        }
+      }
 
-    const cancelledSnap = await adminDb
-      .collection("rides")
-      .where("driverId", "==", id)
-      .where("status", "==", "cancelled")
-      .get();
+      if (r.status === "cancelled") cancelled++;
+      if (r.status === "ongoing") ongoing++;
+    });
 
     return NextResponse.json({
       success: true,
+      driverId: id,
+      driver: {
+        ...(driverData || {}),
+        createdAt: convertTS(driverData?.createdAt),
+        updatedAt: convertTS(driverData?.updatedAt),
+      },
       stats: {
-        driver: { id: driverSnap.id, ...driverSnap.data() },
-        totalCompleted,
-        totalEarnings: totalFare,
-        todayCompleted,
-        ongoing: ongoingSnap.size,
-        cancelled: cancelledSnap.size,
+        rideStats: {
+          totalCompleted,
+          ongoing,
+          cancelled,
+        },
+        earningStats: {
+          totalEarnings,
+        },
+        todayStats: {
+          todayCompleted,
+        },
       },
     });
+;
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err.message },

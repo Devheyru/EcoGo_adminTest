@@ -21,14 +21,14 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const role = getRole(req);
+    // const role = getRole(req);
 
-    if (!ROLE_PERMISSIONS[role]?.users.read) {
-      return NextResponse.json(
-        { error: "Permission denied (READ)" },
-        { status: 403 }
-      );
-    }
+    // if (!ROLE_PERMISSIONS[role]?.users.read) {
+    //   return NextResponse.json(
+    //     { error: "Permission denied (READ)" },
+    //     { status: 403 }
+    //   );
+    // }
     const body = (await req.json()) as CreateRiderBody;
     const { userId, name, email, phone } = body;
 

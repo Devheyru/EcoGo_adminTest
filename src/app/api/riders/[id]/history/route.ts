@@ -6,17 +6,17 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: riderId } = await context.params;
+    const { id } = await context.params;
 
-    if (!riderId) {
+    if (!id) {
       return NextResponse.json(
         { success: false, error: "Rider ID is required" },
         { status: 400 }
       );
     }
 
-    // --- Check rider exists
-    const riderRef = adminDb.collection("users").doc(riderId);
+    // ----- Check rider exists -----
+    const riderRef = adminDb.collection("riders").doc(id);
     const riderSnap = await riderRef.get();
 
     if (!riderSnap.exists) {
@@ -26,11 +26,11 @@ export async function GET(
       );
     }
 
-    // --- Fetch all rider trips
+    // ----- Fetch rider trip history -----
     const tripsSnap = await adminDb
       .collection("rides")
-      .where("riderId", "==", riderId)
-      .orderBy("createdAt", "desc")
+      .where("riderId", "==", id)
+      .orderBy("requestedAt", "desc") // IMPORTANT: this field exists
       .get();
 
     const trips = tripsSnap.docs.map((doc) => ({
@@ -40,7 +40,8 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      total: trips.length,
+      riderId: id,
+      totalTrips: trips.length,
       history: trips,
     });
   } catch (err: any) {
