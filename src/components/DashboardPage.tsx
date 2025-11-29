@@ -112,7 +112,7 @@ export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
   ];
 
   return (
-    <div className="bg-white border-none shadow-md rounded-lg p-4">
+    <div className="bg-white border-none shadow-md      rounded-lg  p-4">
       <div className="flex lg:hidden justify-center">
         <Logo />
       </div>

@@ -137,32 +137,32 @@ export function ReportsPage({
   return (
     <div className="p-6 space-y-6 bg-gray-50/50 min-h-screen">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+        <div className="w-full">
+          <h1 className="font-bold text-1xl sm:text-2xl  bg-(--charcoal-dark) text-white p-1 mt-3 rounded-md">
             Reports & Analytics
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p style={{ color: "var(--charcoal-dark)" }} className="text-lg pl-2">
             System audit logs, operational reports, and analytics
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Calendar className="w-4 h-4 mr-2" />
-            Last 30 Days
-          </Button>
-          <Button
-            onClick={handleExport}
-            className="bg-(--charcoal-dark) text-white"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-        </div>
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button variant="outline">
+          <Calendar className="w-4 h-4 mr-2" />
+          Last 30 Days
+        </Button>
+        <Button
+          onClick={handleExport}
+          className="bg-(--charcoal-dark) text-white"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Export CSV
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {stats.map((stat) => (
-          <Card key={stat.label} className="border-none shadow-sm">
+          <Card key={stat.label} className="border-none shadow-lg bg-white">
             <CardContent className="p-6 flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">
@@ -179,18 +179,35 @@ export function ReportsPage({
       </div>
 
       <Tabs defaultValue={defaultTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
-          <TabsTrigger value="audit">Audit Logs</TabsTrigger>
-          <TabsTrigger value="operational">Operational</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 gap-3 lg:w-[400px]">
+          <TabsTrigger
+            className="bg-white border-none shadow-lg cursor-pointer hover:bg-green-400 hover:text-white rounded-md "
+            value="audit"
+          >
+            Audit Logs
+          </TabsTrigger>
+          <TabsTrigger
+            className="bg-white border-none shadow-lg cursor-pointer hover:bg-green-400 hover:text-white rounded-md "
+            value="operational"
+          >
+            Operational
+          </TabsTrigger>
           {canViewFinance && (
-            <TabsTrigger value="financial">Financial</TabsTrigger>
+            <TabsTrigger
+              className="bg-white border-none shadow-lg cursor-pointer hover:bg-green-400 hover:text-white rounded-md "
+              value="financial"
+            >
+              Financial
+            </TabsTrigger>
           )}
         </TabsList>
 
         <TabsContent value="audit" className="mt-6">
-          <Card className="border-none shadow-md">
+          <Card className="border-none shadow-lg bg-white">
             <CardHeader>
-              <CardTitle>System Audit Logs</CardTitle>
+              <CardTitle className="bg-[#2F3A3F] w-fit p-1 text-white rounded-md">
+                System Audit Logs
+              </CardTitle>
               <CardDescription>
                 Track all user activities and system events
               </CardDescription>
@@ -216,7 +233,7 @@ export function ReportsPage({
                       onClick={() => setFilterSeverity(severity)}
                       className={
                         filterSeverity === severity
-                          ? "bg-(--charcoal-dark)"
+                          ? "bg-green-400 text-white"
                           : ""
                       }
                       size="sm"
@@ -294,9 +311,11 @@ export function ReportsPage({
         </TabsContent>
 
         <TabsContent value="operational" className="mt-6">
-          <Card className="border-none shadow-md">
+          <Card className="border-none shadow-lg bg-white">
             <CardHeader>
-              <CardTitle>Operational Reports</CardTitle>
+              <CardTitle className="bg-[#2F3A3F] w-fit p-1 text-white rounded-md">
+                Operational Reports
+              </CardTitle>
               <CardDescription>
                 Daily trip statistics and driver performance
               </CardDescription>
@@ -332,9 +351,11 @@ export function ReportsPage({
 
         {canViewFinance && (
           <TabsContent value="financial" className="mt-6">
-            <Card className="border-none shadow-md">
+            <Card className="border-none shadow-lg bg-white">
               <CardHeader>
-                <CardTitle>Financial Reports</CardTitle>
+                <CardTitle className="bg-[#2F3A3F] w-fit p-1 text-white rounded-md">
+                  Financial Reports
+                </CardTitle>
                 <CardDescription>
                   Revenue, commissions, and payout reports
                 </CardDescription>

@@ -58,12 +58,15 @@ export function SettingsPage({
 
   return (
     <div className="p-6 space-y-6 bg-gray-50/50 min-h-screen">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className=" flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+          <h1
+            // style={{ color: "var(--charcoal-dark)" }}
+            className="font-bold text-1xl sm:text-2xl  bg-(--charcoal-dark) text-white p-1 mt-3 rounded-md"
+          >
             System Settings
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p style={{ color: "var(--charcoal-dark)" }} className="text-lg pl-2">
             Configure system-wide settings and preferences
           </p>
         </div>
@@ -84,7 +87,7 @@ export function SettingsPage({
       </div>
 
       {hasChanges && (
-        <Card className="bg-yellow-50 border-yellow-200">
+        <Card className="bg-white border-none shadow-lg">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-yellow-700" />
@@ -98,18 +101,38 @@ export function SettingsPage({
       )}
 
       <Tabs defaultValue={defaultTab} className="w-full">
-        <TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="pricing">Pricing</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
+        <TabsList className="gap-3">
+          <TabsTrigger
+            className="bg-white border-none shadow-lg cursor-pointer hover:bg-green-400 hover:text-white "
+            value="general"
+          >
+            General
+          </TabsTrigger>
+          <TabsTrigger
+            className="bg-white border-none shadow-lg cursor-pointer hover:bg-green-400 hover:text-white "
+            value="pricing"
+          >
+            Pricing
+          </TabsTrigger>
+          <TabsTrigger
+            className="bg-white border-none shadow-lg cursor-pointer hover:bg-green-400 hover:text-white "
+            value="notifications"
+          >
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger
+            className="bg-white border-none shadow-lg cursor-pointer hover:bg-green-400 hover:text-white "
+            value="security"
+          >
+            Security
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="border-none shadow-md">
+            <Card className="bg-white border-none shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 bg-[#2F3A3F] w-fit text-white p-1 rounded-md">
                   <Building className="w-5 h-5 text-green-600" />
                   Company Information
                 </CardTitle>
@@ -117,8 +140,8 @@ export function SettingsPage({
                   Basic company details and contact information
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
+              <CardContent className="space-y-4 ">
+                <div className="space-y-2 bg-white border-none rounded-lg">
                   <Label htmlFor="companyName">Company Name</Label>
                   <Input
                     id="companyName"
@@ -146,9 +169,9 @@ export function SettingsPage({
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-md">
+            <Card className="bg-white border-none shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 bg-[#2F3A3F] w-fit text-white p-1 rounded-md">
                   <MapPin className="w-5 h-5 text-green-600" />
                   Booking Settings
                 </CardTitle>
@@ -204,9 +227,9 @@ export function SettingsPage({
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-md">
+            <Card className="bg-white border-none shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 bg-[#2F3A3F] w-fit text-white p-1 rounded-md">
                   <SettingsIcon className="w-5 h-5 text-green-600" />
                   System Controls
                 </CardTitle>
@@ -261,9 +284,9 @@ export function SettingsPage({
         </TabsContent>
 
         <TabsContent value="pricing" className="mt-6">
-          <Card className="border-none shadow-md">
+          <Card className="bg-white border-none shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 bg-[#2F3A3F] w-fit text-white p-1 rounded-md">
                 <DollarSign className="w-5 h-5 text-green-600" />
                 Pricing Settings
               </CardTitle>
@@ -329,9 +352,9 @@ export function SettingsPage({
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-6">
-          <Card className="border-none shadow-md">
+          <Card className="bg-white border-none shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 bg-[#2F3A3F] w-fit text-white p-1 rounded-md">
                 <Bell className="w-5 h-5 text-green-600" />
                 Notification Preferences
               </CardTitle>
@@ -349,13 +372,13 @@ export function SettingsPage({
         </TabsContent>
 
         <TabsContent value="security" className="mt-6">
-          <Card className="border-red-200 shadow-sm">
+          <Card className="bg-white border-none shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-700">
+              <CardTitle className="flex items-center gap-2 bg-red-400 w-fit text-white p-1 rounded-md">
                 <ShieldAlert className="w-5 h-5" />
                 Danger Zone
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-yellow-500">
                 Critical system operations - use with caution
               </CardDescription>
             </CardHeader>

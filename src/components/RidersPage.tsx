@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 // import {DeleteRider} from './operation/DeleteRider'
-import  EditRider  from "./operation/EditRider";
+import EditRider from "./operation/EditRider";
 import {
   Card,
   CardContent,
@@ -48,7 +48,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import Logo from "./Logo";
-import DeleteRider from './operation/DeleteRider';
+import DeleteRider from "./operation/DeleteRider";
 
 interface Rider {
   id: string;
@@ -97,11 +97,11 @@ export function RidersPage({ onClose, onCreated }: any) {
   const [riders, setRiders] = useState<any[]>([]);
   // const [riders, setRiders] = useState<UserData[]>([]);
   const [rides, setRides] = useState<RideData[]>([]);
-   const [form, setForm] = useState({
-     name: "",
-     phone: "",
-     email: "",
-   });
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+  });
   // const fetchRiders = async (role: string) => {
   //   try {
   //     const res = await fetch("/api/riders", {
@@ -150,62 +150,61 @@ export function RidersPage({ onClose, onCreated }: any) {
   };
 
   //  useEffect(() => {
-  
-//    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-//      if (!user) {
-//        router.push("/login");
-//        return;
-//      }
 
-//      // Try admins, users, and super_admins collections
-//      const collections = ["admins", "users", "super_admins"];
-//      let found = false;
-//      let data = null;
-//      let role = ""; // Store the determined role
+  //    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+  //      if (!user) {
+  //        router.push("/login");
+  //        return;
+  //      }
 
-//      for (const col of collections) {
-//        const ref = doc(db, col, user.uid);
-//        const snap = await getDoc(ref);
-//        if (snap.exists()) {
-//          data = snap.data();
-//          role = data.role ?? ""; // Capture the role
-//          found = true;
-//          break;
-//        }
-//      }
+  //      // Try admins, users, and super_admins collections
+  //      const collections = ["admins", "users", "super_admins"];
+  //      let found = false;
+  //      let data = null;
+  //      let role = ""; // Store the determined role
 
-//      if (found && data) {
-//        const adminProfile = {
-//          id: user.uid,
-//          firstName: data.firstName ?? "",
-//          lastName: data.lastName ?? "",
-//          email: data.email ?? "",
-//          role: role,
-//          mobile: data.mobile ?? "",
-//          canOverride: data.canOverride ?? false,
-//        };
+  //      for (const col of collections) {
+  //        const ref = doc(db, col, user.uid);
+  //        const snap = await getDoc(ref);
+  //        if (snap.exists()) {
+  //          data = snap.data();
+  //          role = data.role ?? ""; // Capture the role
+  //          found = true;
+  //          break;
+  //        }
+  //      }
 
-//        setAdminData(adminProfile);
+  //      if (found && data) {
+  //        const adminProfile = {
+  //          id: user.uid,
+  //          firstName: data.firstName ?? "",
+  //          lastName: data.lastName ?? "",
+  //          email: data.email ?? "",
+  //          role: role,
+  //          mobile: data.mobile ?? "",
+  //          canOverride: data.canOverride ?? false,
+  //        };
 
-//        // 🎯 FIX: Call fetchRiders immediately upon successful authentication
-//        // and retrieval of the user role.
-//        if (role) {
-//          fetchRiders(role);
-//        }
-//      } else {
-//        router.push("/login");
-//      }
+  //        setAdminData(adminProfile);
 
-//      setLoading(false);
-//    });
+  //        // 🎯 FIX: Call fetchRiders immediately upon successful authentication
+  //        // and retrieval of the user role.
+  //        if (role) {
+  //          fetchRiders(role);
+  //        }
+  //      } else {
+  //        router.push("/login");
+  //      }
 
-//    return () => unsubscribe();
-//  }, [router]);
-  
-   useEffect(() => {
-     fetchRiders();
-   }, []);
-  
+  //      setLoading(false);
+  //    });
+
+  //    return () => unsubscribe();
+  //  }, [router]);
+
+  useEffect(() => {
+    fetchRiders();
+  }, []);
 
   const filteredRiders = riders.filter(
     (rider) =>
@@ -580,11 +579,7 @@ export function RidersPage({ onClose, onCreated }: any) {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          
-                            
-                            
-                            <EditRider rider={rider} onUpdated={fetchRiders} />
-                          
+                          <EditRider rider={rider} onUpdated={fetchRiders} />
                           {/* <Button
                             size="icon"
                             style={{
@@ -600,8 +595,7 @@ export function RidersPage({ onClose, onCreated }: any) {
                             <MessageCircle className="w-4 h-4" />
                           </Button> */}
                           <Button
-                            size="icon" 
-                            
+                            size="icon"
                             onClick={() => {
                               setSelectedRider(rider);
                               setIsMessageDialogOpen(true);
@@ -643,10 +637,12 @@ export function RidersPage({ onClose, onCreated }: any) {
                     </p>
                   </div>
                   <Badge
-                    style={{
-                      // backgroundColor: getStatusColor(selectedRider.status).bg,
-                      // color: getStatusColor(selectedRider.status).text,
-                    }}
+                    style={
+                      {
+                        // backgroundColor: getStatusColor(selectedRider.status).bg,
+                        // color: getStatusColor(selectedRider.status).text,
+                      }
+                    }
                   >
                     {selectedRider.status}
                   </Badge>
