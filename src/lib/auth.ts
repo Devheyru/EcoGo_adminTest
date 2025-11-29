@@ -60,7 +60,8 @@ export async function requireUser(): Promise<User> {
 
 export async function requireRole(allowedRoles: UserRole[]): Promise<User> {
   const user = await requireUser();
-  if (!allowedRoles.includes(user.role)) {
+  const role = user.role as UserRole | undefined;
+  if (!role || !allowedRoles.includes(role)) {
     // Redirect to a 403 page or dashboard if they have some access
     redirect("/access-denied");
   }

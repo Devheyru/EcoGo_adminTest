@@ -6,10 +6,10 @@ import { adminDb } from "@/lib/firebaseAdmin";
 // ========================
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
     const doc = await adminDb.collection("riders").doc(id).get();
 
     if (!doc.exists) {
@@ -36,10 +36,10 @@ export async function GET(
 // ========================
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
     const body = await req.json();
 
     const docRef = adminDb.collection("riders").doc(id);
@@ -68,10 +68,10 @@ export async function PATCH(
 // ========================
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
 
     const docRef = adminDb.collection("riders").doc(id);
     const doc = await docRef.get();
