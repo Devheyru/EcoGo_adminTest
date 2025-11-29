@@ -572,7 +572,7 @@ export function RidersPage({ onClose, onCreated }: any) {
                           {/* Reduced gap */}
                           <Button
                             size="icon" /* Changed to size="icon" for smaller buttons on mobile */
-                            variant="outline"
+                            // variant="outline"
                             onClick={() => {
                               setSelectedRider(rider);
                               setIsViewDialogOpen(true);
@@ -580,21 +580,11 @@ export function RidersPage({ onClose, onCreated }: any) {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button
-                            size="icon"
-                            style={{
-                              backgroundColor: "#2DB85B",
-                              color: "white",
-                            }}
-                            // onClick={() => {
-                            //   setSelectedRider(rider);
-                            //   setIsMessageDialogOpen(true);
-                            // }}
-                          >
-                            {/* i need to edit econ */}
-                            {/* <Edit className="w-4 h-4" /> */}
+                          
+                            
+                            
                             <EditRider rider={rider} onUpdated={fetchRiders} />
-                          </Button>
+                          
                           {/* <Button
                             size="icon"
                             style={{
@@ -610,11 +600,8 @@ export function RidersPage({ onClose, onCreated }: any) {
                             <MessageCircle className="w-4 h-4" />
                           </Button> */}
                           <Button
-                            size="icon" /* Changed to size="icon" for smaller buttons on mobile */
-                            // style={{
-                            //   backgroundColor: "red",
-                            //   color: "white",
-                            // }}
+                            size="icon" 
+                            
                             onClick={() => {
                               setSelectedRider(rider);
                               setIsMessageDialogOpen(true);

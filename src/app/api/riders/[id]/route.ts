@@ -16,14 +16,14 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const role = getRole(req);
+    // const role = getRole(req);
 
-    if (!ROLE_PERMISSIONS[role]?.users.read) {
-      return NextResponse.json(
-        { error: "Permission denied (READ)" },
-        { status: 403 }
-      );
-    }
+    // if (!ROLE_PERMISSIONS[role]?.users.read) {
+    //   return NextResponse.json(
+    //     { error: "Permission denied (READ)" },
+    //     { status: 403 }
+    //   );
+    // }
 
     const { id } = await context.params;
 
@@ -60,14 +60,14 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const role = getRole(req);
+    // const role = getRole(req);
 
-    if (!ROLE_PERMISSIONS[role]?.users.read) {
-      return NextResponse.json(
-        { error: "Permission denied (READ)" },
-        { status: 403 }
-      );
-    }
+    // if (!ROLE_PERMISSIONS[role]?.users.read) {
+    //   return NextResponse.json(
+    //     { error: "Permission denied (READ)" },
+    //     { status: 403 }
+    //   );
+    // }
     const { id } = await context.params;
 
     const updates = await req.json();
