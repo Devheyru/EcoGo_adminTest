@@ -19,122 +19,67 @@ function getRole(request: NextRequest): Role {
   return (r in ROLE_PERMISSIONS ? r : "driver") as Role;
 }
 
-// ========================
-// GET /api/users/:id
-// ========================
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const role = getRole(request);
+  const { id } = await context.params;
 
-    if (!ROLE_PERMISSIONS[role]?.users.read) {
-      return NextResponse.json(
-        { error: "Permission denied (READ)" },
-        { status: 403 }
-      );
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    return NextResponse.json(
-      { success: false, error: err.message },
-      { status: 500 }
-    );
+  const role = getRole(request);
+  if (!ROLE_PERMISSIONS[role]?.users.read) {
+    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
+
+  return NextResponse.json({ id });
 }
 
-// ========================
-// UPDATE (PATCH)
-// ========================
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const role = getRole(request);
+  const { id } = await context.params;
 
-    if (!ROLE_PERMISSIONS[role]?.users.update) {
-      return NextResponse.json(
-        { error: "Permission denied (UPDATE)" },
-        { status: 403 }
-      );
-    }
-
-    const { id } = context.params;
-    const body = await request.json();
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
-    }
-
-    const docRef = db.collection("users").doc(id);
-    const doc = await docRef.get();
-
-    if (!doc.exists) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const updateData = {
-      ...body,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    await docRef.update(updateData);
-
-    return NextResponse.json({
-      message: "User updated successfully",
-      updated: updateData,
-    });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  const role = getRole(request);
+  if (!ROLE_PERMISSIONS[role]?.users.update) {
+    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
+
+  const body = await request.json();
+
+  const docRef = db.collection("users").doc(id);
+  const doc = await docRef.get();
+
+  if (!doc.exists) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  await docRef.update({
+    ...body,
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  return NextResponse.json({ message: "User updated" });
 }
 
-// ========================
-// DELETE
-// ========================
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const role = getRole(request);
+  const { id } = await context.params;
 
-    if (!ROLE_PERMISSIONS[role]?.users.read) {
-      return NextResponse.json(
-        { error: "Permission denied (READ)" },
-        { status: 403 }
-      );
-    }
-
-    const { id } = context.params;
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
-    }
-
-    const docRef = db.collection("users").doc(id);
-    const doc = await docRef.get();
-
-    if (!doc.exists) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    await docRef.delete();
-
-    return NextResponse.json({
-      message: "User deleted successfully",
-      id,
-    });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  const role = getRole(request);
+  if (!ROLE_PERMISSIONS[role]?.users.delete) {
+    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
+
+  const docRef = db.collection("users").doc(id);
+  const doc = await docRef.get();
+
+  if (!doc.exists) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  await docRef.delete();
+
+  return NextResponse.json({ message: "User deleted", id });
 }
