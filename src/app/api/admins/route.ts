@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      admin: { id: adminId, ...adminData },
+      admin: { ...adminData },
     });
   } catch (err: any) {
     return NextResponse.json(

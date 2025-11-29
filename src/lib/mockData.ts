@@ -2,12 +2,12 @@ import { User, Booking, Analytics, AuditLog, Settings } from "../types";
 
 export const mockUsers: User[] = [
   {
-        id: "1",
-      
+    id: "1",
     uid: "1",
     name: "John Admin",
     email: "john.admin@ecogo.ca",
     role: "admin",
+    roleId: "admin-role-id",
     status: "active",
     createdAt: "2024-01-15",
     lastLogin: "2025-11-14T09:30:00",
@@ -18,6 +18,7 @@ export const mockUsers: User[] = [
     name: "Sarah Operator",
     email: "sarah.operator@ecogo.ca",
     role: "operator",
+    roleId: "operator-role-id",
     status: "active",
     createdAt: "2024-02-20",
     lastLogin: "2025-11-14T08:15:00",
@@ -28,6 +29,7 @@ export const mockUsers: User[] = [
     name: "Mike Johnson",
     email: "mike.j@email.com",
     role: "operator",
+    roleId: "operator-role-id",
     status: "active",
     createdAt: "2024-03-10",
     lastLogin: "2025-11-13T16:45:00",
@@ -38,6 +40,7 @@ export const mockUsers: User[] = [
     name: "Emily Chen",
     email: "emily.chen@ecogo.ca",
     role: "admin",
+    roleId: "admin-role-id",
     status: "active",
     createdAt: "2024-01-20",
     lastLogin: "2025-11-14T07:20:00",
@@ -48,6 +51,7 @@ export const mockUsers: User[] = [
     name: "David Brown",
     email: "david.brown@ecogo.ca",
     role: "operator",
+    roleId: "operator-role-id",
     status: "inactive",
     createdAt: "2024-04-05",
     lastLogin: "2025-10-30T14:30:00",
