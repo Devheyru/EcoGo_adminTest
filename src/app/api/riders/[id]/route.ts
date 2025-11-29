@@ -1,39 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
-// import { getRole } from "@/lib/auth";
-import { ROLE_PERMISSIONS } from "@/lib/permissions";
 
-
-
-export type Role = keyof typeof ROLE_PERMISSIONS;
-
-function getRole(request: Request): Role {
-  const r = request.headers.get("x-user-role") || "driver";
-  return (r in ROLE_PERMISSIONS ? r : "driver") as Role;
-}
+// ========================
+// GET /api/riders/:id
+// ========================
 export async function GET(
-  req: Request,
-  context: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
-    // const role = getRole(req);
-
-    // if (!ROLE_PERMISSIONS[role]?.users.read) {
-    //   return NextResponse.json(
-    //     { error: "Permission denied (READ)" },
-    //     { status: 403 }
-    //   );
-    // }
-
-    const { id } = await context.params;
-
-    if (!id) {
-      return NextResponse.json(
-        { success: false, error: "Rider ID is required" },
-        { status: 400 }
-      );
-    }
-
+    const { id } = context.params;
     const doc = await adminDb.collection("riders").doc(id).get();
 
     if (!doc.exists) {
@@ -47,33 +23,27 @@ export async function GET(
       success: true,
       rider: { id: doc.id, ...doc.data() },
     });
-  } catch (error: any) {
+  } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, message: err.message },
       { status: 500 }
     );
   }
 }
 
+// ========================
+// PATCH /api/riders/:id
+// ========================
 export async function PATCH(
-  req: Request,
-  context: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
-    // const role = getRole(req);
+    const { id } = context.params;
+    const body = await req.json();
 
-    // if (!ROLE_PERMISSIONS[role]?.users.read) {
-    //   return NextResponse.json(
-    //     { error: "Permission denied (READ)" },
-    //     { status: 403 }
-    //   );
-    // }
-    const { id } = await context.params;
-
-    const updates = await req.json();
-
-    const riderRef = adminDb.collection("riders").doc(id);
-    const doc = await riderRef.get();
+    const docRef = adminDb.collection("riders").doc(id);
+    const doc = await docRef.get();
 
     if (!doc.exists) {
       return NextResponse.json(
@@ -82,56 +52,29 @@ export async function PATCH(
       );
     }
 
-    const riderData = doc.data() as any;
+    await docRef.update({ ...body, updatedAt: new Date() });
 
-    await riderRef.update({
-      ...updates,
-      updatedAt: new Date(),
-    });
-
-    // ALSO update the user's record
-    if (riderData.userId) {
-      await adminDb
-        .collection("users")
-        .doc(riderData.userId)
-        .update({
-          ...updates,
-          updatedAt: new Date(),
-        })
-        .catch(() => {});
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "Rider updated successfully",
-      updates,
-    });
-  } catch (error: any) {
+    return NextResponse.json({ success: true, message: "Rider updated" });
+  } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, message: err.message },
       { status: 500 }
     );
   }
 }
 
+// ========================
+// DELETE /api/riders/:id
+// ========================
 export async function DELETE(
-  req: Request,
-  context: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
-    // const role = getRole(req);
+    const { id } = context.params;
 
-    // if (!ROLE_PERMISSIONS[role]?.users.read) {
-    //   return NextResponse.json(
-    //     { error: "Permission denied (READ)" },
-    //     { status: 403 }
-    //   );
-    // }
-
-    const { id } = await context.params;
-
-    const riderRef = adminDb.collection("riders").doc(id);
-    const doc = await riderRef.get();
+    const docRef = adminDb.collection("riders").doc(id);
+    const doc = await docRef.get();
 
     if (!doc.exists) {
       return NextResponse.json(
@@ -140,27 +83,12 @@ export async function DELETE(
       );
     }
 
-    const riderData = doc.data() as any;
+    await docRef.delete();
 
-    // Delete rider from riders collection
-    await riderRef.delete();
-
-    // Delete corresponding user
-    if (riderData.userId) {
-      await adminDb
-        .collection("users")
-        .doc(riderData.userId)
-        .delete()
-        .catch(() => {});
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "Rider and linked user deleted successfully",
-    });
-  } catch (error: any) {
+    return NextResponse.json({ success: true, message: "Rider deleted", id });
+  } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, message: err.message },
       { status: 500 }
     );
   }

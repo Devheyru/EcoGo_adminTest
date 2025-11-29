@@ -9,6 +9,7 @@ type CreateRiderBody = {
   email?: string;
   phone?: string;
 };
+
 export type Role = keyof typeof ROLE_PERMISSIONS;
 
 function getRole(request: Request): Role {
@@ -16,23 +17,14 @@ function getRole(request: Request): Role {
   return (r in ROLE_PERMISSIONS ? r : "driver") as Role;
 }
 
-export async function POST(
-  req: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+// ========================
+// POST /api/riders
+// ========================
+export async function POST(req: Request) {
   try {
-    // const role = getRole(req);
-
-    // if (!ROLE_PERMISSIONS[role]?.users.read) {
-    //   return NextResponse.json(
-    //     { error: "Permission denied (READ)" },
-    //     { status: 403 }
-    //   );
-    // }
     const body = (await req.json()) as CreateRiderBody;
     const { userId, name, email, phone } = body;
 
-    // Validate required fields
     if (!userId && (!name || !email || !phone)) {
       return NextResponse.json(
         {
@@ -46,61 +38,44 @@ export async function POST(
 
     let finalUserId = userId ?? null;
 
-    // -----------------------------------
-    // 1️⃣ If userId is provided (existing user)
-    // -----------------------------------
     if (finalUserId) {
       const existingUser = await adminDb
         .collection("users")
         .doc(finalUserId)
         .get();
-
       if (!existingUser.exists) {
         return NextResponse.json(
           { success: false, message: "Provided userId not found" },
           { status: 404 }
         );
       }
-
-      // Always ensure user role = rider
-      await adminDb.collection("users").doc(finalUserId).update({
-        role: "rider",
-        updatedAt: new Date(),
-      });
+      await adminDb
+        .collection("users")
+        .doc(finalUserId)
+        .update({ role: "rider", updatedAt: new Date() });
     } else {
-      // -----------------------------------
-      // 2️⃣ Create new user if userId missing
-      // -----------------------------------
-
-      // check duplicate email
       const emailQuery = await adminDb
         .collection("users")
         .where("email", "==", email)
         .limit(1)
         .get();
-
-      if (!emailQuery.empty) {
+      if (!emailQuery.empty)
         return NextResponse.json(
           { success: false, message: "Email already exists" },
           { status: 409 }
         );
-      }
 
-      // check duplicate phone
       const phoneQuery = await adminDb
         .collection("users")
         .where("phone", "==", phone)
         .limit(1)
         .get();
-
-      if (!phoneQuery.empty) {
+      if (!phoneQuery.empty)
         return NextResponse.json(
           { success: false, message: "Phone number already exists" },
           { status: 409 }
         );
-      }
 
-      // create user
       const userRef = adminDb.collection("users").doc();
       finalUserId = userRef.id;
 
@@ -116,9 +91,6 @@ export async function POST(
       });
     }
 
-    // -----------------------------------
-    // 3️⃣ Create Rider Document
-    // -----------------------------------
     const riderRef = adminDb.collection("riders").doc();
     const riderId = riderRef.id;
 
@@ -153,28 +125,16 @@ export async function POST(
     );
   }
 }
-export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
+
+// ========================
+// GET /api/riders
+// ========================
+export async function GET(req: Request) {
   try {
-    // const role = getRole(req);
-
-    // if (!ROLE_PERMISSIONS[role]?.users.read) {
-    //   return NextResponse.json(
-    //     { error: "Permission denied (READ)" },
-    //     { status: 403 }
-    //   );
-    // }
     const snapshot = await adminDb.collection("riders").get();
+    const riders = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-    const riders = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    return NextResponse.json({
-      success: true,
-      total: riders.length,
-      riders,
-    });
+    return NextResponse.json({ success: true, total: riders.length, riders });
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err.message },
