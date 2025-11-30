@@ -46,6 +46,7 @@ export const menuItems: MenuItem[] = [
     label: "Admin",
     icon: LayoutDashboard,
     isDropdown: false,
+    
     requiredPermission: { resource: "dashboard", action: "view" },
   },
   {
