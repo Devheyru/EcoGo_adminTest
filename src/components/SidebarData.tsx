@@ -43,7 +43,7 @@ export interface MenuItem {
 export const menuItems: MenuItem[] = [
   {
     id: "dashboard",
-    label: "Dashboard",
+    label: "Admin Dashboard",
     icon: LayoutDashboard,
     isDropdown: false,
     requiredPermission: { resource: "dashboard", action: "view" },
@@ -144,6 +144,7 @@ export const menuItems: MenuItem[] = [
       { id: "hr/employees", label: "Employees" },
       { id: "hr/shifts", label: "Shifts & Scheduling" },
       { id: "hr/attendance", label: "Time & Attendance" },
+
       { id: "hr/training", label: "Training & Certs" },
       { id: "hr/performance", label: "Performance" },
     ],

@@ -160,7 +160,25 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 overflow-y-auto">
+        <nav
+          className="flex-1 px-3 overflow-y-auto text-white" // <-- Set base text color to white here
+          // Custom CSS for thinner scrollbar
+          style={{
+            scrollbarWidth: "thin", // Firefox
+            scrollbarColor: "#3A4750 transparent", // Firefox
+          }}
+        >
+          {/* Webkit scrollbar for Chrome, Safari, Edge */}
+          <style jsx global>{`
+            .flex-1.px-3.overflow-y-auto::-webkit-scrollbar {
+              width: 6px;
+            }
+            .flex-1.px-3.overflow-y-auto::-webkit-scrollbar-thumb {
+              background-color: #3a4750; /* A slightly lighter shade of the sidebar background */
+              border-radius: 3px;
+            }
+          `}</style>
+
           {filteredMenuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentPage === item.id;
@@ -182,6 +200,13 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
               isActive ||
               (subItems.length > 0 && hasActiveDescendant(subItems));
 
+            // Logic to auto-expand parent if an active child is found
+            useEffect(() => {
+              if (rowActive && item.isDropdown && !isExpanded) {
+                setExpandedMenus((prev) => ({ ...prev, [item.id]: true }));
+              }
+            }, [rowActive, item.isDropdown, isExpanded, item.id]);
+
             const handler = () => toggleDropdown(item.id);
             const showDropdown = !!item.isDropdown;
 
@@ -190,10 +215,10 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
                 <div key={item.id}>
                   {/* PARENT DROPDOWN ROW */}
                   <div
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition duration-150 ease-in-out hover:bg-[#3A4750] text-white" // Added text-white here
                     style={{
                       backgroundColor: rowActive ? "#3A4750" : "transparent",
-                      color: rowActive || isExpanded ? "#2DB85B" : "white",
+                      // REMOVED: color: rowActive ? "#2DB85B" : "white",
                     }}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
@@ -202,7 +227,8 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
                       type="button"
                       onClick={handler}
                       aria-expanded={isExpanded}
-                      className="flex-1 text-sm font-semibold leading-[22px] text-left"
+                      className="flex-1 text-sm font-semibold leading-[22px] text-left text-white" // Added text-white here
+                      // REMOVED: style={{ color: rowActive || isExpanded ? "#2DB85B" : "inherit" }}
                     >
                       {item.label}
                     </button>
@@ -232,16 +258,13 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
                             <div key={sub.id}>
                               <button
                                 onClick={() => toggleDropdown(sub.id)}
-                                className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm"
+                                className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm transition duration-150 ease-in-out hover:bg-[#3A4750] text-white" // Added text-white here
                                 style={{
                                   backgroundColor:
                                     isParentExpanded || parentActive
                                       ? "#3A4750"
                                       : "transparent",
-                                  color:
-                                    isParentExpanded || parentActive
-                                      ? "#2DB85B"
-                                      : "white",
+                                  // REMOVED: color: isParentExpanded || parentActive ? "#2DB85B" : "white",
                                 }}
                               >
                                 {sub.label}
@@ -269,14 +292,12 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
                                               `/${child.id}`
                                             )
                                           }
-                                          className="block px-4 py-2 rounded-lg text-sm"
+                                          className="block px-4 py-2 rounded-lg text-sm transition duration-150 ease-in-out hover:bg-[#3A4750] text-white" // Added text-white here
                                           style={{
                                             backgroundColor: childActive
                                               ? "#3A4750"
                                               : "transparent",
-                                            color: childActive
-                                              ? "#2DB85B"
-                                              : "white",
+                                            // REMOVED: color: childActive ? "#2DB85B" : "white",
                                           }}
                                         >
                                           {child.label}
@@ -290,6 +311,7 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
                           );
                         }
 
+                        // Regular sub-item link
                         return (
                           <Link
                             key={sub.id}
@@ -297,12 +319,12 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
                             onClick={(e) =>
                               handleLinkClick(e as any, `/${sub.id}`)
                             }
-                            className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm"
+                            className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm transition duration-150 ease-in-out hover:bg-[#3A4750] text-white" // Added text-white here
                             style={{
                               backgroundColor: subActive
                                 ? "#3A4750"
                                 : "transparent",
-                              color: subActive ? "#2DB85B" : "white",
+                              // REMOVED: color: subActive ? "#2DB85B" : "white",
                             }}
                           >
                             <span>{sub.label}</span>
@@ -321,10 +343,10 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
                 key={item.id}
                 href={`/${item.id}`}
                 onClick={(e) => handleLinkClick(e as any, `/${item.id}`)}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 cursor-pointer"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 cursor-pointer transition duration-150 ease-in-out hover:bg-[#3A4750] text-white" // Added text-white here
                 style={{
                   backgroundColor: isActive ? "#3A4750" : "transparent",
-                  color: isActive ? "#2DB85B" : "white",
+                  // REMOVED: color: isActive ? "#2DB85B" : "white",
                 }}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -338,8 +360,9 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
         <div className="p-3">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white"
-            style={{ backgroundColor: "gray" }}
+            // Removed hover:text-[#2DB85B] and replaced hover:text-base with dynamic styling
+            className="w-full flex items-center justify-start cursor-pointer  gap-3 px-4 py-3 rounded-lg text-white font-semibold transition-all duration-200 ease-in-out hover:font-extrabold hover:text-base"
+            style={{ backgroundColor: "transparent" }}
           >
             <LogOut className="w-5 h-5" />
             Logout
