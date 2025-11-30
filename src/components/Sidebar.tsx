@@ -222,7 +222,7 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
                       color: rowActive ? "#2DB85B" : "white",
                     }}
                   >
-                    <Icon className="w-4 h-4 shrink-0" />
+                    {/* <Icon className="w-4 h-4 shrink-0" /> */}
 
                     <button
                       type="button"
