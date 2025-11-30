@@ -25,35 +25,45 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { mockAnalytics } from "@/lib/mockData";
 import Logo from "./Logo";
 
-export function DashboardPage() {
+export interface DashboardMetrics {
+  totalTrips: number;
+  activeDrivers: number;
+  totalRevenue: number;
+  activeRiders: number;
+  bookingsTrend: any[];
+  revenueTrend: any[];
+  topRoutes: any[];
+  vehicleUtilization: any[];
+}
+
+export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
   const stats = [
     {
       label: "Total Trips",
-      value: "177",
+      value: metrics?.totalTrips.toString() || "0",
       change: "+32.5%",
       color: "var(--eco-green)",
       icon: TrendingUp,
     },
     {
       label: "Active Drivers",
-      value: "1",
+      value: metrics?.activeDrivers.toString() || "0",
       change: "+53.2%",
       color: "var(--charcoal-dark)",
       icon: Car,
     },
     {
       label: "Total Revenue",
-      value: "$557",
+      value: `$${metrics?.totalRevenue.toLocaleString() || "0"}`,
       change: "+25.2%",
       color: "var(--eco-green)",
       icon: DollarSign,
     },
     {
       label: "Active Riders",
-      value: "1",
+      value: metrics?.activeRiders.toString() || "0",
       change: "+83.3%",
       color: "var(--charcoal-dark)",
       icon: Users,
@@ -102,7 +112,7 @@ export function DashboardPage() {
   ];
 
   return (
-    <div className="bg-white border-none shadow-md rounded-lg p-4">
+    <div className="bg-white border-none shadow-md      rounded-lg  p-4">
       <div className="flex lg:hidden justify-center">
         <Logo />
       </div>
@@ -112,7 +122,7 @@ export function DashboardPage() {
         <div>
           <h1
             // style={{ color: "var(--charcoal-dark)" }}
-            className="font-bold text-1xl sm:text-2xl  bg-[var(--charcoal-dark)] text-white p-1 rounded-md"
+            className="font-bold text-1xl sm:text-2xl  bg-(--charcoal-dark) text-white p-1 rounded-md"
           >
             Admin Dashboard
           </h1>
@@ -162,7 +172,7 @@ export function DashboardPage() {
 
         {/* NEW SECTION — SERVICE TYPE BREAKDOWN */}
         <div>
-          <h2 className="font-bold text-xl mb-4 bg-[var(--charcoal-dark)] text-white p-1 rounded-md">
+          <h2 className="font-bold text-xl mb-4 bg-(--charcoal-dark) text-white p-1 rounded-md">
             Service Type Breakdown
           </h2>
 
@@ -208,13 +218,13 @@ export function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="bg-white border-none shadow-md ">
             <CardHeader className="p-2 flex justify-center">
-              <CardTitle className="bg-[var(--charcoal-dark)] text-white p-1 rounded-md w-60">
+              <CardTitle className="bg-(--charcoal-dark) text-white p-1 rounded-md w-60">
                 Bookings Trend (7 Days)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={mockAnalytics.bookingsTrend}>
+                <LineChart data={metrics?.bookingsTrend || []}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="var(--gray-mid)"
@@ -237,13 +247,13 @@ export function DashboardPage() {
 
           <Card className="bg-white border-none shadow-md">
             <CardHeader className=" p-2 flex justify-center">
-              <CardTitle className="bg-[var(--charcoal-dark)] text-white p-1 rounded-md text-center mb-1 w-65">
+              <CardTitle className="bg-(--charcoal-dark) text-white p-1 rounded-md text-center mb-1 w-65">
                 Revenue Trend (7 Days)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={mockAnalytics.revenueTrend}>
+                <BarChart data={metrics?.revenueTrend || []}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="var(--gray-mid)"
@@ -273,8 +283,8 @@ export function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockAnalytics.topRoutes.map((route, index) => {
-                  const maxCount = mockAnalytics.topRoutes[0].count;
+                {(metrics?.topRoutes || []).map((route, index) => {
+                  const maxCount = (metrics?.topRoutes || [])[0]?.count || 1;
                   const percentage = (route.count / maxCount) * 100;
                   return (
                     <div key={route.route}>
@@ -287,7 +297,7 @@ export function DashboardPage() {
                         </span>
                         <span
                           className={`${
-                            route.id === 1 ? "text-[var(--eco-green)]" : ""
+                            route.id === 1 ? "text-(--eco-green)" : ""
                           }`}
                         >
                           {route.count}
@@ -320,7 +330,7 @@ export function DashboardPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={mockAnalytics.vehicleUtilization}
+                    data={metrics?.vehicleUtilization || []}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -329,7 +339,7 @@ export function DashboardPage() {
                     fill="#8884d8"
                     dataKey="percentage"
                   >
-                    {mockAnalytics.vehicleUtilization.map((entry, index) => (
+                    {(metrics?.vehicleUtilization || []).map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}

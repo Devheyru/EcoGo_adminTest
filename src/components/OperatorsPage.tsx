@@ -44,7 +44,7 @@ import Logo from "./Logo";
 
 // Utility to format date as Canada year/month/day (YYYY/MM/DD)
 const formatCanadaDate = (dateInput: any) => {
-  if (!dateInput) return "2025/11/01";
+  if (!dateInput) return "2025-11-01";
 
   // Handle Firebase timestamp objects if they come as {seconds, nanoseconds}
   let date;
@@ -54,7 +54,7 @@ const formatCanadaDate = (dateInput: any) => {
     date = new Date(dateInput);
   }
 
-  if (isNaN(date.getTime())) return "2025/11/01";
+  if (isNaN(date.getTime())) return "2025-11-01";
 
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
