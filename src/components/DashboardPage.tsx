@@ -25,45 +25,35 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { mockAnalytics } from "@/lib/mockData";
 import Logo from "./Logo";
 
-export interface DashboardMetrics {
-  totalTrips: number;
-  activeDrivers: number;
-  totalRevenue: number;
-  activeRiders: number;
-  bookingsTrend: any[];
-  revenueTrend: any[];
-  topRoutes: any[];
-  vehicleUtilization: any[];
-}
-
-export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
+export function DashboardPage() {
   const stats = [
     {
       label: "Total Trips",
-      value: metrics?.totalTrips.toString() || "0",
+      value: "177",
       change: "+32.5%",
       color: "var(--eco-green)",
       icon: TrendingUp,
     },
     {
       label: "Active Drivers",
-      value: metrics?.activeDrivers.toString() || "0",
+      value: "1",
       change: "+53.2%",
       color: "var(--charcoal-dark)",
       icon: Car,
     },
     {
       label: "Total Revenue",
-      value: `$${metrics?.totalRevenue.toLocaleString() || "0"}`,
+      value: "$557",
       change: "+25.2%",
       color: "var(--eco-green)",
       icon: DollarSign,
     },
     {
       label: "Active Riders",
-      value: metrics?.activeRiders.toString() || "0",
+      value: "1",
       change: "+83.3%",
       color: "var(--charcoal-dark)",
       icon: Users,
@@ -112,7 +102,7 @@ export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
   ];
 
   return (
-    <div className="bg-white border-none shadow-md      rounded-lg  p-4">
+    <div className="bg-white border-none shadow-md rounded-lg p-4">
       <div className="flex lg:hidden justify-center">
         <Logo />
       </div>
@@ -122,7 +112,7 @@ export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
         <div>
           <h1
             // style={{ color: "var(--charcoal-dark)" }}
-            className="font-bold text-1xl sm:text-2xl  bg-(--charcoal-dark) text-white p-1 rounded-md"
+            className="font-bold text-1xl sm:text-2xl  bg-[var(--charcoal-dark)] text-white p-1 rounded-md"
           >
             Admin Dashboard
           </h1>
@@ -172,7 +162,7 @@ export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
 
         {/* NEW SECTION — SERVICE TYPE BREAKDOWN */}
         <div>
-          <h2 className="font-bold text-xl mb-4 bg-(--charcoal-dark) text-white p-1 rounded-md">
+          <h2 className="font-bold text-xl mb-4 bg-[var(--charcoal-dark)] text-white p-1 rounded-md">
             Service Type Breakdown
           </h2>
 
@@ -218,13 +208,13 @@ export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="bg-white border-none shadow-md ">
             <CardHeader className="p-2 flex justify-center">
-              <CardTitle className="bg-(--charcoal-dark) text-white p-1 rounded-md w-60">
+              <CardTitle className="bg-[var(--charcoal-dark)] text-white p-1 rounded-md w-60">
                 Bookings Trend (7 Days)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={metrics?.bookingsTrend || []}>
+                <LineChart data={mockAnalytics.bookingsTrend}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="var(--gray-mid)"
@@ -247,13 +237,13 @@ export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
 
           <Card className="bg-white border-none shadow-md">
             <CardHeader className=" p-2 flex justify-center">
-              <CardTitle className="bg-(--charcoal-dark) text-white p-1 rounded-md text-center mb-1 w-65">
+              <CardTitle className="bg-[var(--charcoal-dark)] text-white p-1 rounded-md text-center mb-1 w-65">
                 Revenue Trend (7 Days)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={metrics?.revenueTrend || []}>
+                <BarChart data={mockAnalytics.revenueTrend}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="var(--gray-mid)"
@@ -283,8 +273,8 @@ export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {(metrics?.topRoutes || []).map((route, index) => {
-                  const maxCount = (metrics?.topRoutes || [])[0]?.count || 1;
+                {mockAnalytics.topRoutes.map((route, index) => {
+                  const maxCount = mockAnalytics.topRoutes[0].count;
                   const percentage = (route.count / maxCount) * 100;
                   return (
                     <div key={route.route}>
@@ -297,7 +287,7 @@ export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
                         </span>
                         <span
                           className={`${
-                            route.id === 1 ? "text-(--eco-green)" : ""
+                            route.id === 1 ? "text-[var(--eco-green)]" : ""
                           }`}
                         >
                           {route.count}
@@ -330,7 +320,7 @@ export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={metrics?.vehicleUtilization || []}
+                    data={mockAnalytics.vehicleUtilization}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -339,7 +329,7 @@ export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
                     fill="#8884d8"
                     dataKey="percentage"
                   >
-                    {(metrics?.vehicleUtilization || []).map((entry, index) => (
+                    {mockAnalytics.vehicleUtilization.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}

@@ -293,6 +293,7 @@ export function DriversPage() {
       vehicleModel: formData.get("vehicleModel"),
       vehicleColor: formData.get("vehicleColor"),
       licensePlate: formData.get("licensePlate"),
+      licenseNumber: formData.get("licenseNumber"),
       location: formData.get("location"),
     };
 
@@ -454,6 +455,16 @@ export function DriversPage() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="licensePlate">License Number</Label>
+                  <Input
+                    id="licenseNumber"
+                    name="licenseNumber"
+                    placeholder="12345678"
+                    required
+                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="location">Base Location</Label>
                   <Input
                     id="location"
@@ -598,7 +609,7 @@ export function DriversPage() {
                     <MapPin className="w-4 h-4" style={{ color: "#2DB85B" }} />
                     <div className="flex gap-2 pt-2 justify-end ">
                       <Button
-                        size="sm"
+                        size="icon-sm"
                         variant="outline"
                         className="cursor-pointer"
                         onClick={() => {
@@ -606,18 +617,18 @@ export function DriversPage() {
                           setIsViewDialogOpen(true);
                         }}
                       >
-                        <Eye className="w-4 h-4 mr-1" />
+                        <Eye className="w-3 h-3 mr-1" />
                       </Button>
                       <Button
-                        size="sm"
-                        style={{ backgroundColor: "#2DB85B", color: "white" }}
-                        className="cursor-pointer"
+                        size="icon-sm"
+                        style={{ backgroundColor: "black", color: "white" }}
+                        className="cursor-pointer p-2 rounded-md"
                         onClick={() => {
                           setSelectedDriver(driver);
                           setIsMessageDialogOpen(true);
                         }}
                       >
-                        <MessageSquare className="w-4 h-4 mr-1" />
+                        <MessageSquare className="w-3 h-3 mr-1" />
                       </Button>
                     </div>
                   </div>

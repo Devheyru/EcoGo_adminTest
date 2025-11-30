@@ -14,6 +14,13 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Edit, Loader2, MessageCircle } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 import {
   Dialog,
@@ -101,6 +108,8 @@ export function RidersPage({ onClose, onCreated }: any) {
     name: "",
     phone: "",
     email: "",
+    password: "",
+    status: "inactive",
   });
   // const fetchRiders = async (role: string) => {
   //   try {
@@ -343,7 +352,7 @@ export function RidersPage({ onClose, onCreated }: any) {
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleAddRider} className="space-y-4 mt-4">
+              <form onSubmit={handleAddRider} className="space-y-4 mt-4 h-110">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-white">
                     Full Name
@@ -389,6 +398,43 @@ export function RidersPage({ onClose, onCreated }: any) {
                       setForm({ ...form, phone: e.target.value })
                     }
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-white">
+                    Password
+                  </Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="password"
+                    required
+                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Status</Label>
+
+                  <Select
+                    value={form.status}
+                    onValueChange={(value) =>
+                      setForm({ ...form, status: value })
+                    } // ✅ FIXED
+                  >
+                    <SelectTrigger className="w-full bg-white border-gray-300">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="suspended">Suspended</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="flex gap-2 justify-end pt-2">
@@ -530,8 +576,8 @@ export function RidersPage({ onClose, onCreated }: any) {
                       <td className="p-4 whitespace-nowrap">
                         <Badge
                           className={` text-black text-xs
-              ${rider.status === "active" ? "bg-green-400" : ""}
-              ${rider.status === "inactive" ? "bg-red-400" : ""}
+              ${rider.status === "active" ? "bg-green-300" : ""}
+              ${rider.status === "inactive" ? "bg-red-300" : ""}
               ${rider.status === "suspended" ? "bg-gray-300" : ""}
             `}
                         >
@@ -544,7 +590,7 @@ export function RidersPage({ onClose, onCreated }: any) {
                       </td>
 
                       <td className="p-4 text-sm whitespace-nowrap font-bold">
-                        {/* ${rider.totalSpent.toFixed(2)} */}
+                        {/* ${rider.totalSpent.toFixed(2)} */} $200
                       </td>
 
                       <td
@@ -554,6 +600,7 @@ export function RidersPage({ onClose, onCreated }: any) {
                         {/* {rider.memberSince
                           ? rider.memberSince.toDate().toLocaleDateString()
                           : "N/A"} */}
+                        2025-11-11
                       </td>
 
                       <td
@@ -563,6 +610,7 @@ export function RidersPage({ onClose, onCreated }: any) {
                         {/* {rider.lastTrip
                           ? rider.lastTrip.toDate().toLocaleDateString()
                           : "N/A"} */}
+                        2025-11-25
                       </td>
 
                       <td className="p-4 whitespace-nowrap">

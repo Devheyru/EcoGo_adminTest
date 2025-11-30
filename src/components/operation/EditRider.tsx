@@ -13,6 +13,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
   Edit,
   Loader2,
   Eye,
@@ -103,7 +110,6 @@ export default function EditRider({ rider, onUpdated }: any) {
   return (
     <div className="flex items-center gap-2 justify-end">
       {/* --- Detail Button & Dialog --- */}
-      
 
       <Dialog open={openDetail} onOpenChange={setOpenDetail}>
         <DialogContent className="max-w-md bg-white text-[#1E1E1E]">
@@ -150,6 +156,21 @@ export default function EditRider({ rider, onUpdated }: any) {
                       {detailData.phone || "N/A"}
                     </p>
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select
+                    name="status"
+                    // defaultValue={editingOperator.status || "inactive"}
+                  >
+                    <SelectTrigger className="w-full bg-white border-gray-300">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -237,6 +258,25 @@ export default function EditRider({ rider, onUpdated }: any) {
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 className="bg-white border-gray-300"
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+
+              <Select
+                value={form.status}
+                onValueChange={(value) => setForm({ ...form, status: value })} // ✅ FIXED
+              >
+                <SelectTrigger className="w-full bg-white border-gray-300">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+
+                <SelectContent className="bg-gray">
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="suspended">suspended</SelectItem>
+                  
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

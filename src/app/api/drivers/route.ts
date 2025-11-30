@@ -47,14 +47,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const role = getRole(req);
+    // const role = getRole(req);
 
-    if (!ROLE_PERMISSIONS[role]?.users.read) {
-      return NextResponse.json(
-        { error: "Permission denied (READ)" },
-        { status: 403 }
-      );
-    }
+    // if (!ROLE_PERMISSIONS[role]?.users.read) {
+    //   return NextResponse.json(
+    //     { error: "Permission denied (READ)" },
+    //     { status: 403 }
+    //   );
+    // }
     const body = (await req.json()) as CreateDriverBody;
 
     const {
