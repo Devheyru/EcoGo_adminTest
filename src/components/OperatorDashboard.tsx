@@ -32,22 +32,22 @@ export function OperatorDashboard({ user, data }: OperatorDashboardProps) {
     <div className="p-6 space-y-6 bg-gray-50/50 min-h-screen">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="font-bold text-3xl text-(--charcoal-dark)">
-            Fleet Command Center
+        <div className="w-full">
+          <h1 className="font-bold text-3xl bg-[#2F3A3F] mt-3 text-white rounded-md">
+            Operator Dashboard
           </h1>
           <p className="text-gray-500 mt-1">
             Welcome back, {user.name} • {data.totalFleet} Vehicles in Fleet
           </p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="gap-2">
-            <Wrench className="w-4 h-4" /> Maintenance
-          </Button>
-          <Button className="bg-(--eco-green) hover:bg-(--eco-green)/90 text-white gap-2">
-            <Car className="w-4 h-4" /> Add Vehicle
-          </Button>
-        </div>
+      </div>
+      <div className="flex gap-3 justify-end">
+        <Button variant="outline" className="gap-2">
+          <Wrench className="w-4 h-4" /> Maintenance
+        </Button>
+        <Button className="bg-(--eco-green) hover:bg-(--eco-green)/90 text-white gap-2">
+          <Car className="w-4 h-4" /> Add Vehicle
+        </Button>
       </div>
 
       {/* Key Metrics Cards */}
@@ -90,20 +90,37 @@ export function OperatorDashboard({ user, data }: OperatorDashboardProps) {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-3 mb-6">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="fleet">Fleet Status</TabsTrigger>
-          <TabsTrigger value="drivers">Drivers</TabsTrigger>
+        <TabsList className="grid w-full max-w-md grid-cols-3 gap-3 mb-6">
+          <TabsTrigger
+            className="hover:bg-green-400 rounded-md hover:text-white bg-gray-200"
+            value="overview"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            className="hover:bg-green-400 rounded-md hover:text-white bg-gray-200"
+            value="fleet"
+          >
+            Fleet Status
+          </TabsTrigger>
+          <TabsTrigger
+            className="hover:bg-green-400 rounded-md hover:text-white bg-gray-200"
+            value="drivers"
+          >
+            Drivers
+          </TabsTrigger>
         </TabsList>
 
         {/* OVERVIEW TAB */}
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Map Placeholder */}
-            <Card className="lg:col-span-2 border-none shadow-md overflow-hidden">
+            <Card className="lg:col-span-2 border-none shadow-lg bg-white overflow-hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="flex justify-between items-center">
-                  <span>Live Fleet Map</span>
+                  <span className="bg-[#2F3A3F] text-white p-1 rounded-md">
+                    Live Fleet Map
+                  </span>
                   <Badge variant="outline" className="font-normal">
                     <span className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
                     Live Updates
@@ -145,9 +162,11 @@ export function OperatorDashboard({ user, data }: OperatorDashboardProps) {
 
             {/* Recent Alerts & Activity */}
             <div className="space-y-6">
-              <Card className="border-none shadow-md h-full">
+              <Card className="border-none shadow-lg bg-white h-full">
                 <CardHeader>
-                  <CardTitle>Recent Alerts</CardTitle>
+                  <CardTitle className="bg-[#2F3A3F] text-white p-1 rounded-md w-fit">
+                    Recent Alerts
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -196,7 +215,7 @@ export function OperatorDashboard({ user, data }: OperatorDashboardProps) {
 
         {/* FLEET TAB */}
         <TabsContent value="fleet">
-          <Card className="border-none shadow-md">
+          <Card className="border-none shadow-lg bg-white">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Vehicle Management</CardTitle>
               <div className="flex gap-2">
@@ -291,7 +310,7 @@ export function OperatorDashboard({ user, data }: OperatorDashboardProps) {
 
         {/* DRIVERS TAB (Placeholder) */}
         <TabsContent value="drivers">
-          <Card className="border-none shadow-md p-8 text-center">
+          <Card className="border-none shadow-lg bg-white  p-8 text-center">
             <div className="flex flex-col items-center justify-center space-y-4">
               <Users className="w-12 h-12 text-gray-300" />
               <h3 className="text-lg font-medium">Driver Management</h3>
@@ -322,7 +341,9 @@ function MetricCard({
 }: any) {
   return (
     <Card
-      className={`border-none shadow-sm ${alert ? "ring-2 ring-red-100" : ""}`}
+      className={`border-none shadow-lg bg-white ${
+        alert ? "ring-2 ring-red-300" : ""
+      }`}
     >
       <CardContent className="p-6">
         <div className="flex justify-between items-start">
