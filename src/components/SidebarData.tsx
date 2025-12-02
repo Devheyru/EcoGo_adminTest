@@ -368,8 +368,8 @@ export const menuItems: MenuItem[] = [
       {
   id: "role-management",
   label: "Role Management",
-  icon: ShieldCheck, // or UsersCog, LockKeyhole — pick your preferred icon
-  isDropdown: true,
+   // or UsersCog, LockKeyhole — pick your preferred icon
+  
   requiredPermission: { resource: "roles", action: "read" },
 
   children: [
