@@ -68,7 +68,6 @@ export const menuItems: MenuItem[] = [
       {
         id: "users/drivers",
         label: "Drivers",
-        
 
         requiredPermission: { resource: "drivers", action: "read" },
         children: [
@@ -137,8 +136,8 @@ export const menuItems: MenuItem[] = [
       {
         id: "dispatch",
         label: "Dispatch",
-       // or Navigation, MapPin, Satellite, etc.
-        
+        // or Navigation, MapPin, Satellite, etc.
+
         requiredPermission: { resource: "dispatch", action: "read" },
 
         children: [
@@ -158,13 +157,52 @@ export const menuItems: MenuItem[] = [
     isDropdown: true,
     requiredPermission: { resource: "operations", action: "read" },
     children: [
+      {
+        id: "operating-parameters",
+        label: "Operating Parameters",
+        // or Cog, Sliders, Wrench — choose any icon you prefer
+
+        children: [
+          {
+            id: "operating-parameters/service-zones",
+            label: "Service Zones / Regions",
+          },
+          {
+            id: "operating-parameters/operating-hours",
+            label: "Operating Hours (Auto-Inactive Drivers)",
+          },
+          {
+            id: "operating-parameters/fare-structure",
+            label: "Fare Structure (Fixed / Distance / Time)",
+          },
+          {
+            id: "operating-parameters/whitelabel-tiers",
+            label: "White-Label Fee Tiers (B2B)",
+          },
+          {
+            id: "operating-parameters/commission-rates",
+            label: "Commission Rates",
+          },
+          {
+            id: "operating-parameters/minimum-pricing",
+            label: "Ride Minimum Pricing Protections",
+          },
+          {
+            id: "operating-parameters/safety-policies",
+            label: "Safety Policies for Drivers & Riders",
+          },
+          {
+            id: "operating-parameters/incident-reporting",
+            label: "Incident Reporting Process",
+          },
+        ],
+      },
       { id: "operations/live-tracking", label: "Live Tracking" },
       { id: "operations/pending-rides", label: "Pending Rides" },
       { id: "operations/scheduled-rides", label: "Scheduled Rides" },
       { id: "operations/completed-history", label: "Completed History" },
       { id: "operations/cancelled-rides", label: "Cancelled Rides" },
       { id: "operations/driver-performance", label: "Driver Performance" },
-
     ],
   },
   {
@@ -200,7 +238,7 @@ export const menuItems: MenuItem[] = [
       { id: "bookings/manual-assign", label: "Manual Assignment" },
       { id: "bookings/live-tracking", label: "Live Ride Tracking" },
       { id: "bookings/rebooking", label: "Re-booking / Retry" },
-     
+
       { id: "bookings/issues", label: "Ride Issues / Support" },
       { id: "bookings/audit", label: "Booking Audit Logs" },
     ],
@@ -218,6 +256,40 @@ export const menuItems: MenuItem[] = [
       { id: "finance/commissions", label: "Commissions & Earnings" },
       { id: "promo-codes", label: "Promo Codes" },
       { id: "transactions", label: "Transactions" },
+      {
+        id: "financial-tax-information",
+        label: "Financial & Tax Information",
+         // or Wallet, Banknote — choose your preferred icon
+        
+        requiredPermission: { resource: "finance", action: "read" },
+
+        children: [
+          {
+            id: "financial-tax/bank-info",
+            label: "Bank Account / ACH Information",
+          },
+          {
+            id: "financial-tax/payout-settings",
+            label: "Payout Frequency & Methods",
+          },
+          {
+            id: "financial-tax/driver-payouts",
+            label: "Driver Payout Calculations",
+          },
+          {
+            id: "financial-tax/commission-breakdown",
+            label: "Commission Breakdown",
+          },
+          {
+            id: "financial-tax/tax-rates",
+            label: "GST / HST / QST (or Local Tax Rates)",
+          },
+          {
+            id: "financial-tax/annual-reports",
+            label: "Annual T4A / 1099 Reporting",
+          },
+        ],
+      },
     ],
   },
   {
@@ -287,7 +359,6 @@ export const menuItems: MenuItem[] = [
       { id: "reports/payout-reports", label: "Payout Reports" },
     ],
   },
-  
 
   {
     id: "core-wallet",
@@ -306,6 +377,7 @@ export const menuItems: MenuItem[] = [
           { id: "core-wallet/ecowallet", label: "EcoWallet" },
           { id: "core-wallet/cadwallet", label: "CAD Wallet" },
           { id: "core-wallet/balance", label: "Wallet Balance" },
+
           {
             id: "core-wallet/transactions",
             label: "Wallet Transactions",
@@ -315,6 +387,8 @@ export const menuItems: MenuItem[] = [
             label: "Conversion Rules",
           },
           { id: "core-wallet/conditions", label: "Conditions" },
+          { id: "core-wallet/add", label: "Add" },
+          { id: "core-wallet/edit", label: "Edit" },
         ],
       },
 
@@ -335,6 +409,8 @@ export const menuItems: MenuItem[] = [
           { id: "core-wallet/fees/overrides", label: "Fee Overrides" },
           { id: "core-wallet/fees/mapping", label: "Wallet Mapping" },
           { id: "core-wallet/fees/analytics", label: "Fee Analytics" },
+          { id: "core-wallet/fees/add", label: "Add" },
+          { id: "core-wallet/fees/edit", label: "Edit" },
         ],
       },
     ],
@@ -357,6 +433,8 @@ export const menuItems: MenuItem[] = [
           { id: "pricing/base/cost-per-km", label: "Cost per Km" },
           { id: "pricing/base/cost-per-minute", label: "Cost per Minute" },
           { id: "pricing/base/min-max-fare", label: "Min/Max Fare" },
+          { id: "pricing/base/add", label: "Add" },
+          { id: "pricing/base/base/edit", label: "Edit" },
         ],
       },
 
@@ -371,6 +449,9 @@ export const menuItems: MenuItem[] = [
           { id: "pricing/dynamic/zone", label: "Zone-based Pricing" },
           { id: "pricing/dynamic/school-zone", label: "School-zone Pricing" },
           { id: "pricing/dynamic/event", label: "Event-based Pricing" },
+
+          { id: "pricing/dynamic/add", label: "Add" },
+          { id: "pricing/dynamic/edit", label: "Edit" },
         ],
       },
 
@@ -392,6 +473,9 @@ export const menuItems: MenuItem[] = [
             id: "pricing/service-type/subscription",
             label: "Subscription Pricing",
           },
+
+          { id: "pricing/service-type/add", label: "Add" },
+          { id: "pricing/service-type/edit", label: "Edit" },
         ],
       },
 
@@ -413,6 +497,56 @@ export const menuItems: MenuItem[] = [
           {
             id: "pricing/discounts/family-bundles",
             label: "Family / Household Bundles",
+          },
+
+          { id: "pricing/discounts/add", label: "Add" },
+          { id: "pricing/discounts/edit", label: "Edit" },
+        ],
+      },
+      {
+        id: "pricing/multi-city-pricing",
+        label: "Multi-city Pricing",
+        children: [
+          { id: "pricing/multi-city-pricing/multi-zone", label: "Multi-zone" },
+          {
+            id: "pricing/multi-city-pricing/multi-region",
+            label: "Multi-region",
+          },
+          {
+            id: "pricing/multi-city-pricing/clone-pricing",
+            label: "Clone Pricing",
+          },
+          {
+            id: "pricing/multi-city-pricing/add",
+            label: "Add",
+          },
+          {
+            id: "pricing/multi-city-pricing/edit",
+            label: "Edit",
+          },
+        ],
+      },
+      {
+        id: "pricing/rule-engine",
+        label: "Rule Engine",
+        children: [
+          { id: "pricing/rule-engine/conditions", label: "Conditions" },
+          { id: "pricing/rule-engine/triggers", label: "Triggers" },
+          {
+            id: "pricing/rule-engine/expiry",
+            label: "Expiry rules",
+          },
+          {
+            id: "pricing/rule-engine/limits",
+            label: "Usage limits",
+          },
+          {
+            id: "pricing/rule-engine/add",
+            label: "Add",
+          },
+          {
+            id: "pricing/rule-engine/edit",
+            label: "Edit",
           },
         ],
       },
@@ -436,13 +570,24 @@ export const menuItems: MenuItem[] = [
           { id: "incentives/rider/free-ride-rules", label: "Free Ride Rules" },
           {
             id: "incentives/rider/cashback",
-            label: "Cashback & Referral Rewards",
+            label: "Cashback",
+          },
+          {
+            id: "incentives/rider/referral",
+            label: "Referral Rewards",
           },
           { id: "incentives/rider/special-pricing", label: "Special Pricing" },
           {
             id: "incentives/rider/membership-tiers",
             label: "Membership Tiers",
           },
+          {
+            id: "incentives/rider/founding-rider",
+            label: "Founding Rider",
+          },
+
+          // { id: "incentives/rider/add", label: "Add" },
+          // { id: "incentives/rider/edit", label: "Edit" },
         ],
       },
 
@@ -472,6 +617,10 @@ export const menuItems: MenuItem[] = [
             label: "Rating-based Bonuses",
           },
           { id: "incentives/driver/referrals", label: "Driver Referrals" },
+          { id: "incentives/driver/founding-driver", label: "Founding Driver" },
+
+          // { id: "incentives/driver/add", label: "Add" },
+          // { id: "incentives/driver/edit", label: "Edit" },
         ],
       },
 
@@ -489,6 +638,13 @@ export const menuItems: MenuItem[] = [
             id: "incentives/partner/seasonal-promos",
             label: "Seasonal Promos",
           },
+          {
+            id: "incentives/partner/ambassador",
+            label: "Community Ambassador",
+          },
+
+          { id: "incentives/partner/add", label: "Add" },
+          { id: "incentives/partner/edit", label: "Edit" },
         ],
       },
     ],
@@ -506,6 +662,9 @@ export const menuItems: MenuItem[] = [
       { id: "subscription/student", label: "Student Plan" },
       { id: "subscription/premium", label: "Premium Plan" },
       { id: "subscription/benefits", label: "Benefits Management" },
+
+      { id: "subscription/add", label: "Add" },
+      { id: "subscription/edit", label: "Edit" },
     ],
   },
   {
@@ -523,6 +682,7 @@ export const menuItems: MenuItem[] = [
 
         children: [
           { id: "user-auth/signup/registration", label: "Registration" },
+          { id: "user-auth/signup/age", label: "Age" },
           { id: "user-auth/signup/edit", label: "Edit" },
           { id: "user-auth/signup/inactive", label: "Inactive" },
         ],
@@ -535,6 +695,8 @@ export const menuItems: MenuItem[] = [
 
         children: [
           { id: "user-auth/kyc/address", label: "Address" },
+          { id: "user-auth/kyc/email", label: "Email address" },
+          { id: "user-auth/kyc/phone", label: "mobile number" },
           { id: "user-auth/kyc/gov-id", label: "Government ID" },
           { id: "user-auth/kyc/selfie", label: "Selfie with ID" },
           { id: "user-auth/kyc/documents", label: "Document Upload" },
@@ -543,15 +705,20 @@ export const menuItems: MenuItem[] = [
 
       // 5.3 ROLE MANAGEMENT
       {
-        id: "user-auth/roles",
-        label: "Role Management",
-
-        children: [
-          { id: "user-auth/roles/add", label: "Add Role" },
-          { id: "user-auth/roles/edit", label: "Edit Role" },
-          { id: "user-auth/roles/inactive", label: "Inactive" },
-          { id: "user-auth/roles/permissions", label: "Permissions Per Role" },
-        ],
+        id: "user-auth/vehicle",
+        label: "Vehicle and Insurance info",
+      },
+      {
+        id: "user-auth/local-license",
+        label: "EcoGo Local License",
+      },
+      {
+        id: "user-auth/company-info",
+        label: "Company Information",
+      },
+      {
+        id: "user-auth/driver-info",
+        label: "Driver Information",
       },
     ],
   },
@@ -570,6 +737,8 @@ export const menuItems: MenuItem[] = [
       { id: "system/alerts", label: "Alerts" },
       { id: "system/sos", label: "SOS" },
       { id: "system/otp", label: "OTP System" },
+      { id: "system/pricing", label: "Pricing" },
+      { id: "system/product", label: "Product" },
     ],
   },
   {
@@ -632,6 +801,88 @@ export const menuItems: MenuItem[] = [
             label: "Ineffective Incentives",
           },
         ],
+      },
+      {
+        id: "analytics/reports",
+        label: "Reporting Requirements",
+
+        children: [
+          { id: "analytics/reports/trip-level", label: "Trip Level details" },
+          {
+            id: "analytics/reports/times",
+            label: "Wait Time",
+          },
+          {
+            id: "analytics/reports/cancel",
+            label: "Cancellation Logs",
+          },
+          {
+            id: "analytics/reports/driver-online-time",
+            label: "fare summaries",
+          },
+          {
+            id: "analytics/reports/safety",
+            label: "Safety incidents",
+          },
+          {
+            id: "analytics/reports/municipality-specific",
+            label: "Municipality Specific",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "safety",
+    label: "Safety & Compliance",
+    icon: ShieldCheck, // <-- use any icon you prefer
+    isDropdown: true,
+    requiredPermission: { resource: "safety", action: "read" },
+
+    children: [
+      { id: "safety/inspection-logs", label: "Safety Inspection Logs" },
+      {
+        id: "safety/incident-reporting",
+        label: "Incident / Accident Reporting",
+      },
+      { id: "safety/lost-and-found", label: "Lost & Found Processes" },
+      {
+        id: "safety/emergency-protocols",
+        label: "Emergency Response Protocols",
+      },
+      {
+        id: "safety/complaint-escalation",
+        label: "Complaint Escalation Workflows",
+      },
+      {
+        id: "safety/behavior-policies",
+        label: "Rider & Driver Behavior Policies",
+      },
+      { id: "safety/training-docs", label: "Safety Training Documentation" },
+    ],
+  },
+  {
+    id: "governance",
+    label: "Platform Governance",
+    icon: FileText, // choose any icon you like (FileText, Scale, Shield, BookOpen, etc.)
+    isDropdown: true,
+    requiredPermission: { resource: "governance", action: "read" },
+
+    children: [
+      {
+        id: "governance/terms-of-service",
+        label: "Terms of Service (Drivers + Riders)",
+      },
+      { id: "governance/privacy-policy", label: "Privacy Policy" },
+      { id: "governance/data-retention", label: "Data Retention Policies" },
+      {
+        id: "governance/e-sign-consent",
+        label: "Consent for Electronic Signature",
+      },
+      { id: "governance/acceptable-use", label: "Acceptable Use Policies" },
+      {
+        id: "governance/dispute-arbitration",
+        label: "Dispute & Arbitration Policies",
       },
     ],
   },
