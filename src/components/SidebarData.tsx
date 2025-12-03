@@ -366,35 +366,32 @@ export const menuItems: MenuItem[] = [
         ],
       },
       {
-  id: "role-management",
-  label: "Role Management",
-  icon: ShieldCheck, // or UsersCog, LockKeyhole — pick your preferred icon
-  isDropdown: true,
-  requiredPermission: { resource: "roles", action: "read" },
-
-  children: [
-    { 
-      id: "roles/add", 
-      label: "Add Role",
-      requiredPermission: { resource: "roles", action: "create" }
-    },
-    { 
-      id: "roles/edit", 
-      label: "Edit Role",
-      requiredPermission: { resource: "roles", action: "update" }
-    },
-    { 
-      id: "roles/inactive", 
-      label: "Inactive Roles",
-      requiredPermission: { resource: "roles", action: "update" }
-    },
-    { 
-      id: "roles/permissions", 
-      label: "Permissions per Role",
-      requiredPermission: { resource: "roles", action: "read" }
-    },
-  ]
-},
+        id: "role-management",
+        label: "Role Management",
+        requiredPermission: { resource: "roles", action: "read" },
+        children: [
+          {
+            id: "roles/add",
+            label: "Add Role",
+            requiredPermission: { resource: "roles", action: "create" },
+          },
+          {
+            id: "roles/edit",
+            label: "Edit Role",
+            requiredPermission: { resource: "roles", action: "update" },
+          },
+          {
+            id: "roles/inactive",
+            label: "Inactive Roles",
+            requiredPermission: { resource: "roles", action: "update" },
+          },
+          {
+            id: "roles/permissions",
+            label: "Permissions per Role",
+            requiredPermission: { resource: "roles", action: "read" },
+          },
+        ],
+      },
 
       { id: "it/devices", label: "Device Management" },
       { id: "it/system-health", label: "System Health" },
