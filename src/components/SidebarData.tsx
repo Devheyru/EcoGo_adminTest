@@ -72,9 +72,9 @@ export const menuItems: MenuItem[] = [
         requiredPermission: { resource: "drivers", action: "read" },
         children: [
           { id: "drivers", label: "All Drivers" },
-          { id: "drivers/active", label: "Active Drivers" },
-          { id: "drivers/inactive", label: "Inactive Drivers" },
-          { id: "drivers/new", label: "Add New Driver" },
+          // { id: "drivers/active", label: "Active Drivers" },
+          // { id: "drivers/inactive", label: "Inactive Drivers" },
+          // { id: "drivers/new", label: "Add New Driver" },
           { id: "drivers/applications", label: "Driver Applications" },
           { id: "drivers/documents", label: "Document Verification" },
           { id: "drivers/ratings", label: "Driver Ratings" },
@@ -92,9 +92,9 @@ export const menuItems: MenuItem[] = [
         requiredPermission: { resource: "riders", action: "read" },
         children: [
           { id: "riders", label: "All Riders" },
-          { id: "riders/active", label: "Active Riders" },
-          { id: "riders/inactive", label: "Inactive Riders" },
-          { id: "riders/blocked", label: "Blocked Riders" },
+          // { id: "riders/active", label: "Active Riders" },
+          // { id: "riders/inactive", label: "Inactive Riders" },
+          // { id: "riders/blocked", label: "Blocked Riders" },
           { id: "riders/ratings", label: "Rider Ratings" },
           { id: "riders/referrals", label: "Referral Tracking" },
         ],
@@ -151,53 +151,55 @@ export const menuItems: MenuItem[] = [
     ],
   },
   {
-    id: "operations",
-    label: "Operations",
+    id: "rides",
+    label: "Rides",
     icon: Activity,
     isDropdown: true,
     requiredPermission: { resource: "operations", action: "read" },
     children: [
-      {
-        id: "operating-parameters",
-        label: "Operating Parameters",
-        // or Cog, Sliders, Wrench — choose any icon you prefer
+      // {
+      //   id: "operating-parameters",
+      //   label: "Operating Parameters",
+      //   // or Cog, Sliders, Wrench — choose any icon you prefer
 
-        children: [
-          {
-            id: "operating-parameters/service-zones",
-            label: "Service Zones / Regions",
-          },
-          {
-            id: "operating-parameters/operating-hours",
-            label: "Operating Hours (Auto-Inactive Drivers)",
-          },
-          {
-            id: "operating-parameters/fare-structure",
-            label: "Fare Structure (Fixed / Distance / Time)",
-          },
-          {
-            id: "operating-parameters/whitelabel-tiers",
-            label: "White-Label Fee Tiers (B2B)",
-          },
-          {
-            id: "operating-parameters/commission-rates",
-            label: "Commission Rates",
-          },
-          {
-            id: "operating-parameters/minimum-pricing",
-            label: "Ride Minimum Pricing Protections",
-          },
-          {
-            id: "operating-parameters/safety-policies",
-            label: "Safety Policies for Drivers & Riders",
-          },
-          {
-            id: "operating-parameters/incident-reporting",
-            label: "Incident Reporting Process",
-          },
-        ],
-      },
-      { id: "operations/live-tracking", label: "Live Tracking" },
+      //   children: [
+      //     {
+      //       id: "operating-parameters/service-zones",
+      //       label: "Service Zones / Regions",
+      //     },
+      //     {
+      //       id: "operating-parameters/operating-hours",
+      //       label: "Operating Hours (Auto-Inactive Drivers)",
+      //     },
+      //     {
+      //       id: "operating-parameters/fare-structure",
+      //       label: "Fare Structure (Fixed / Distance / Time)",
+      //     },
+      //     {
+      //       id: "operating-parameters/whitelabel-tiers",
+      //       label: "White-Label Fee Tiers (B2B)",
+      //     },
+      //     {
+      //       id: "operating-parameters/commission-rates",
+      //       label: "Commission Rates",
+      //     },
+      //     {
+      //       id: "operating-parameters/minimum-pricing",
+      //       label: "Ride Minimum Pricing Protections",
+      //     },
+      //     {
+      //       id: "operating-parameters/safety-policies",
+      //       label: "Safety Policies for Drivers & Riders",
+      //     },
+      //     {
+      //       id: "operating-parameters/incident-reporting",
+      //       label: "Incident Reporting Process",
+      //     },
+      //   ],
+      // },
+      { id: "ride/ride-requests", label: "Ride Requests" },
+      { id: "ride/customer-rides", label: "Customer Rides" },
+      { id: "ride/ride-complaints", label: "Ride Complaints" },
       { id: "operations/pending-rides", label: "Pending Rides" },
       { id: "operations/scheduled-rides", label: "Scheduled Rides" },
       { id: "operations/completed-history", label: "Completed History" },
@@ -369,6 +371,10 @@ export const menuItems: MenuItem[] = [
         id: "role-management",
         label: "Role Management",
         requiredPermission: { resource: "roles", action: "read" },
+        // or UsersCog, LockKeyhole — pick your preferred icon
+
+        requiredPermission: { resource: "roles", action: "read" },
+
         children: [
           {
             id: "roles/add",
@@ -410,19 +416,6 @@ export const menuItems: MenuItem[] = [
       { id: "marketing/rewards", label: "Reward Points" },
       { id: "marketing/campaigns", label: "Promotional Campaigns" },
       { id: "marketing/broadcast", label: "Broadcast Notifications" },
-    ],
-  },
-  {
-    id: "reports",
-    label: "Reports",
-    icon: BarChart,
-    isDropdown: true,
-    requiredPermission: { resource: "reports", action: "view" },
-    children: [
-      { id: "reports/ride-reports", label: "Ride Reports" },
-      { id: "reports/driver-reports", label: "Driver Reports" },
-      { id: "reports/revenue-reports", label: "Revenue Reports" },
-      { id: "reports/payout-reports", label: "Payout Reports" },
     ],
   },
 
@@ -809,7 +802,7 @@ export const menuItems: MenuItem[] = [
   },
   {
     id: "analytics",
-    label: "Analytics",
+    label: "Analytics & Reports",
     icon: BarChart3, // choose any analytics icon
     isDropdown: true,
     requiredPermission: { resource: "analytics", action: "read" },
@@ -817,17 +810,30 @@ export const menuItems: MenuItem[] = [
     children: [
       // 8.1 PRICING ANALYTICS
       {
-        id: "analytics/pricing",
-        label: "Pricing Analytics",
+        id: "reports",
+        label: "Reports",
 
+       
         children: [
-          { id: "analytics/pricing/avg-fare", label: "Avg Fare" },
-          { id: "analytics/pricing/revenue-metrics", label: "Revenue Metrics" },
-          { id: "analytics/pricing/surge-usage", label: "Surge Usage" },
-          { id: "analytics/pricing/promo-usage", label: "Promo Usage" },
-          { id: "analytics/pricing/discount-impact", label: "Discount Impact" },
+          { id: "reports/ride-reports", label: "Ride Reports" },
+          { id: "reports/driver-reports", label: "Driver Reports" },
+          { id: "reports/revenue-reports", label: "Revenue Reports" },
+          { id: "reports/payout-reports", label: "Payout Reports" },
         ],
       },
+      // {
+      //   id: "analytics/pricing",
+      //   label: "Pricing Analytics",
+
+      //   children: [
+      //     { id: "analytics/pricing/avg-fare", label: "Avg Fare" },
+      //     { id: "analytics/pricing/revenue-metrics", label: "Revenue Metrics" },
+      //     { id: "analytics/pricing/surge-usage", label: "Surge Usage" },
+      //     { id: "analytics/pricing/promo-usage", label: "Promo Usage" },
+      //     { id: "analytics/pricing/discount-impact", label: "Discount Impact" },
+
+      //   ],
+      // },
 
       // 8.2 INCENTIVE ANALYTICS
       {
