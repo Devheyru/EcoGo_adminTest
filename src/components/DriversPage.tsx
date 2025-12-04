@@ -1,762 +1,844 @@
 "use client";
-import { useRouter } from "next/navigation";
 
-import { auth, db } from "../firebase/config";
-import { collection, onSnapshot } from "firebase/firestore";
-import { useEffect } from "react";
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-// Using API GET + polling for drivers
+import React, { useState, useEffect } from "react";
 import {
   Search,
-  UserPlus,
-  Star,
-  Car,
-  MapPin,
-  MessageSquare,
-  Eye,
-  TrendingUp,
   Calendar,
-  DollarSign,
-  WifiOff,
+  MoreVertical,
+  ChevronLeft,
+  ChevronRight,
+  PlusCircle,
+  Users,
+  UserCheck,
+  UserX,
+  Clock,
+  Wallet,
+  Edit,
+  Trash2,
+  FileText,
   Wifi,
+  WifiOff,
 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DriverForm } from "./forms/DriverForm";
 import { toast } from "sonner";
-import Logo from "./Logo";
+import { auth, db } from "../firebase/config";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-interface Rider {
+// --- Types ---
+interface Driver {
   id: string;
+  srNo: number;
+  phone: string;
   name: string;
   email: string;
-  phone: string;
-  totalTrips: number;
-  totalSpent: number;
-  memberSince: string;
-  lastTrip: string;
-  status: "active" | "inactive" | "suspended";
+  walletBalance: number;
+  isOnline: boolean;
+  status: "Active" | "Inactive";
+  isApproved: boolean;
 }
-interface RideData {
-  id: string;
-  pickup: string;
-  destination: string;
-  name: string;
-  fare: number;
-  status: string;
-  riderId: string;
-  driverId: string;
+
+interface FilterState {
+  keyword: string;
+  status: "Active" | "Inactive" | "all";
+  balanceFrom: string;
+  balanceTo: string;
+  regDateFrom: string;
+  regDateTo: string;
+  approved: "yes" | "no" | "all";
 }
+
 interface AdminData {
   id: string;
-  mobile: string;
-  phone?: string;
-  canOverride: boolean;
-  name?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  role?: string;
-}
-interface Drivers {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  vehicleType: string;
-  vehicleModel: string;
-  vehicleColor: string;
-  licensePlate: string;
-  rating: number;
-  totalTrips: number;
-  status: "active" | "inactive" | "suspended";
-  location: string;
-  isOnline: boolean;
+  role: string;
 }
 
-// Using API routes for driver creation/fetching. Server Actions removed.
+// --- Sub-Components ---
 
+const SwitchToggle: React.FC<{
+  checked: boolean;
+  onToggle: () => void;
+  label: string;
+}> = ({ checked, onToggle, label }) => (
+  <div className="flex items-center space-x-2">
+    <button
+      onClick={onToggle}
+      className={`relative inline-flex flex-shrink-0 h-4 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none ${
+        checked ? "bg-[#2F3A3F]" : "bg-gray-200"
+      }`}
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+    >
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
+          checked ? "translate-x-4" : "translate-x-0"
+        }`}
+      />
+    </button>
+  </div>
+);
+
+const FilterForm: React.FC<{
+  filters: FilterState;
+  setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
+  onSearch: () => void;
+  onClear: () => void;
+}> = ({ filters, setFilters, onSearch, onClear }) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setFilters((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-md mb-6 border border-gray-100">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Keyword */}
+        <div className="col-span-1">
+          <label className="block text-md font-medium text-gray-700">
+            Keyword
+          </label>
+          <input
+            type="text"
+            name="keyword"
+            value={filters.keyword}
+            onChange={handleChange}
+            placeholder="Type your keyword here..."
+            className="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm py-4  px-3 text-md focus:ring-[#2DB85B] focus:border-[#2DB85B]"
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            Type name, phone number or email.
+          </p>
+        </div>
+
+        {/* Status */}
+        <div className="col-span-1">
+          <label className="block text-md font-medium text-gray-700">
+            Status
+          </label>
+          <select
+            name="status"
+            value={filters.status}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm py-4  px-3 text-md focus:ring-[#2DB85B] focus:border-[#2DB85B]"
+          >
+            <option className="hover:bg-[#2db85b]" value="all">
+              Inactive
+            </option>
+            <option className="hover:bg-[#2db85b]" value="Active">
+              Active
+            </option>
+            <option className="hover:bg-[#2db85b]" value="Inactive">
+              Inactive
+            </option>
+          </select>
+        </div>
+
+        {/* Wallet Balance Range: From */}
+        <div className="col-span-1">
+          <label className="block text-md font-medium text-gray-700">
+            Wallet balance: From [USD]
+          </label>
+          <input
+            type="text"
+            name="balanceFrom"
+            value={filters.balanceFrom}
+            onChange={handleChange}
+            placeholder="0"
+            className="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm py-4  px-3 text-md focus:ring-[#2DB85B] focus:border-[#2DB85B]"
+          />
+        </div>
+
+        {/* Wallet Balance Range: To */}
+        <div className="col-span-1">
+          <label className="block text-md font-medium text-gray-700">
+            Wallet balance: To [USD]
+          </label>
+          <input
+            type="text"
+            name="balanceTo"
+            value={filters.balanceTo}
+            onChange={handleChange}
+            placeholder="1000"
+            className="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm py-4  px-3 text-md focus:ring-[#2DB85B] focus:border-[#2DB85B]"
+          />
+        </div>
+
+        {/* Registration Date Range: From */}
+        <div className="col-span-1 relative">
+          <label className="block text-md font-medium text-gray-700">
+            Reg. date: From
+          </label>
+          <div className="flex items-center mt-1">
+            <input
+              type="date"
+              name="regDateFrom"
+              value={filters.regDateFrom}
+              onChange={handleChange}
+              className="block w-full rounded-lg border border-gray-300 shadow-sm py-4  px-3 text-md focus:ring-[#2DB85B] focus:border-[#2DB85B] pr-10"
+            />
+            <Calendar className="absolute right-3 top-10 h-4 w-4 text-gray-400 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Registration Date Range: To */}
+        <div className="col-span-1 relative">
+          <label className="block text-md font-medium text-gray-700">
+            Reg. date: To
+          </label>
+          <div className="flex items-center mt-1">
+            <input
+              type="date"
+              name="regDateTo"
+              value={filters.regDateTo}
+              onChange={handleChange}
+              className="block w-full rounded-lg border border-gray-300 shadow-sm py-4  px-3 text-md focus:ring-[#2DB85B] focus:border-[#2DB85B] pr-10"
+            />
+            <Calendar className="absolute right-3 top-10 h-4 w-4 text-gray-400 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Approved */}
+        <div className="col-span-1">
+          <label className="block text-md font-medium text-gray-700">
+            Approved
+          </label>
+          <select
+            name="approved"
+            value={filters.approved}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm py-4  px-3 text-md focus:ring-[#2DB85B] focus:border-[#2DB85B]"
+          >
+            <option value="all">Does not matter</option>
+            <option value="yes">Approved</option>
+            <option value="no">Not Approved</option>
+          </select>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="col-span-1 flex items-end justify-around space-x-4 pt-2">
+          <button
+            onClick={onSearch}
+            className="flex items-center justify-center rounded-lg bg-[#2DB85B] px-6 py-4 text-md font-medium text-white shadow-md hover:bg-green-700 transition-colors"
+          >
+            <Search className="w-4 h-4 mr-2" />
+            Search
+          </button>
+          <button
+            onClick={onClear}
+            className="flex items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-4 text-md font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Main Drivers Page Component ---
 export function DriversPage() {
-  const [drivers, setDrivers] = useState<Drivers[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [selectedDriver, setSelectedDriver] = useState<Drivers | null>(null);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
-  const [messageText, setMessageText] = useState("");
-  const [newDriverVehicleType, setNewDriverVehicleType] = useState("car");
-  const [riders, setRiders] = useState<Rider[]>([]);
-  const [adminData, setAdminData] = useState<AdminData | null>(null);
-
-  const [selectedRider, setSelectedRider] = useState<Rider | null>(null);
-
-  // const [adminData, setAdminData] = useState<AdminData | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
-  // const [riders, setRiders] = useState<UserData[]>([]);
-  const [rides, setRides] = useState<RideData[]>([]);
+  const initialFilters: FilterState = {
+    keyword: "",
+    status: "all",
+    balanceFrom: "",
+    balanceTo: "",
+    regDateFrom: "",
+    regDateTo: "",
+    approved: "all",
+  };
+
+  const [filters, setFilters] = useState<FilterState>(initialFilters);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [filteredDrivers, setFilteredDrivers] = useState<Driver[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [adminData, setAdminData] = useState<AdminData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const itemsPerPage = 10;
+
+  // 1. Auth & Role Check
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      const collections = ["admins", "users", "super_admins"];
+      let found = false;
+      let data = null;
+      let role = "";
+
+      for (const col of collections) {
+        const ref = doc(db, col, user.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          data = snap.data();
+          role = data.role ?? "";
+          found = true;
+          break;
+        }
+      }
+
+      if (found && data) {
+        setAdminData({ id: user.uid, role });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+
+  // 2. Fetch Drivers
+  const fetchDrivers = async () => {
+    if (!adminData) return;
+
+    try {
+      setLoading(true);
+      const res = await fetch("/api/drivers", {
+        headers: {
+          "x-user-role": adminData.role,
+        },
+        cache: "no-store",
+      });
+      const json = await res.json();
+
+      if (json.success && Array.isArray(json.drivers)) {
+        const formatted: Driver[] = json.drivers.map(
+          (d: any, index: number) => ({
+            id: d.id,
+            srNo: index + 1,
+            phone: d.phone || d.mobile || "N/A",
+            name: d.name || "Unknown",
+            email: d.email || "N/A",
+            walletBalance:
+              typeof d.walletBalance === "number" ? d.walletBalance : 0,
+            isOnline: !!d.isOnline,
+            status:
+              d.status === "active" || d.status === "Active"
+                ? "Active"
+                : "Inactive",
+            isApproved:
+              d.isApproved === true ||
+              d.status === "approved" ||
+              d.status === "active",
+            // Preserve other fields for editing
+            country: d.country,
+            state: d.state,
+            city: d.city,
+            address: d.address,
+            postalCode: d.postalCode,
+            gender: d.gender,
+          })
+        );
+        setDrivers(formatted);
+        setFilteredDrivers(formatted);
+      }
+    } catch (error) {
+      console.error("Error fetching drivers:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // 🔵 Real-time: Drivers - REPLACED with Server Action for Join
-    const unsubscribeDrivers = onSnapshot(
-      collection(db, "drivers"),
-      (snapshot) => {
-        setDrivers(
-          snapshot.docs.map((doc) => {
-            const data = doc.data() as any;
+    fetchDrivers();
+  }, [adminData]);
 
-            // Normalize status to the UI's expected values
-            let status: Drivers["status"] = "inactive";
-            if (data.status) {
-              const raw = String(data.status).toLowerCase();
-              if (raw === "active") status = "active";
-              else if (raw === "suspended") status = "suspended";
-              else if (raw === "offline" || raw === "inactive")
-                status = "inactive";
-              else if (raw === "on-trip") status = "active"; // treat on-trip as active
-            } else if (data.isOnline) {
-              status = "active";
-            }
-
-            return {
-              id: doc.id,
-              name: data.name ?? "",
-              email: data.email ?? "",
-              phone: data.phone ?? "",
-              vehicleType: data.vehicleType ?? "",
-              vehicleModel: data.vehicleModel ?? "",
-              vehicleColor: data.vehicleColor ?? "",
-              licensePlate: data.licensePlate ?? "",
-              rating: data.rating ?? 0,
-              totalTrips: data.totalTrips ?? 0,
-              status,
-              location: data.location ?? "",
-              isOnline: !!data.isOnline,
-            } as Drivers;
-          })
-        );
-      }
-    );
-
-    return () => {
-      unsubscribeDrivers();
-    };
-  }, []);
-
-  /*
-  const loadAllData = () => {
-    // 🔵 Real-time: Drivers - REPLACED with Server Action for Join
-    getDriversAction().then((mergedDrivers: MergedDriver[]) => {
-      const mappedDrivers: Drivers[] = mergedDrivers.map((md) => ({
-        id: md.id,
-        name: md.driver.name || md.user?.name || "Unknown",
-        email: md.user?.email || md.driver.email || "",
-        phone: md.driver.phone || "",
-        vehicleType: md.vehicle?.type || md.driver.vehicleType || "Unknown",
-        licensePlate: md.vehicle?.plateNumber || md.driver.licensePlate || "NO-PLATE",
-        rating: md.driver.rating || 0,
-        totalTrips: md.driver.totalTrips || 0,
-        status: md.driver.status || "inactive",
-        location: md.driver.location || "Unknown",
-        isOnline: md.driver.isOnline || false,
-      }));
-      setDrivers(mappedDrivers);
-    });
-    */
-
-  // 🟢 Real-time: Riders
-  const unsubscribeDrivers = () => {}; // No-op since we use server action now
-
-  /* 
-    const unsubscribeDrivers = onSnapshot(
-      collection(db, "drivers"),
-      (snapshot) => {
-        setDrivers(
-          snapshot.docs.map((doc) => {
-            const data = doc.data();
-
-            return {
-              id: doc.id,
-              name: data.name ?? "",
-
-              email: data.email ?? "",
-              phone: data.phone ?? "",
-              vehicleType: data.vehicleType ?? "",
-              licensePlate: data.licensePlate ?? "",
-              rating: data.rating ?? 0,
-              totalTrips: data.totalTrips ?? 0,
-              status:
-                (data.status as "active" | "offline" | "on-trip") ?? "offline",
-              location: data.location ?? "",
-              active: data.active ?? false,
-            } satisfies Drivers;
-          })
-        );
-      }
-    );
-    */
-
-  //  // 🟠 Real-time: Rides
-
-  // Return all unsubs so you can close listeners when admin logs out or leaves page
-  /*
-    return () => {
-      unsubscribeDrivers();
-    };
+  // Handlers
+  const handleAddDriver = () => {
+    setSelectedDriver(null);
+    setIsDrawerOpen(true);
   };
-  */
 
-  const filteredDrivers = drivers.filter(
-    (driver) =>
-      // driver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      driver.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      driver.licensePlate.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleEditDriver = (driver: Driver) => {
+    setSelectedDriver(driver);
+    setIsDrawerOpen(true);
+  };
 
-  const getStatusColor = (status: Drivers["status"]) => {
-    const colors = {
-      active: { bg: "#D0F5DC", text: "#1B6635" },
-      inactive: { bg: "#E6E6E6", text: "#2D2D2D" },
-      suspended: { bg: "#FEE2E2", text: "#DC2626" },
-    };
-    return colors[status] || colors.inactive;
+  const handleDeleteDriver = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this driver?")) return;
+
+    try {
+      const res = await fetch(`/api/drivers/${id}`, {
+        method: "DELETE",
+        headers: {
+          "x-user-role": adminData?.role || "",
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Driver deleted successfully");
+        fetchDrivers();
+      } else {
+        toast.error(data.message || "Failed to delete driver");
+      }
+    } catch (error) {
+      console.error("Error deleting driver:", error);
+      toast.error("Error deleting driver");
+    }
+  };
+
+  const handleViewTransactions = (id: string) => {
+    // Navigate to transactions page or show modal
+    // For now, just a toast or log
+    console.log("View transactions for", id);
+    router.push(`/transactions?driverId=${id}`);
+  };
+
+  const handleSearch = () => {
+    const filtered = drivers.filter((driver) => {
+      const keywordMatch =
+        !filters.keyword ||
+        driver.name.toLowerCase().includes(filters.keyword.toLowerCase()) ||
+        driver.phone.includes(filters.keyword) ||
+        driver.email.toLowerCase().includes(filters.keyword.toLowerCase());
+
+      const statusMatch =
+        filters.status === "all" || driver.status === filters.status;
+      const approvedMatch =
+        filters.approved === "all" ||
+        (filters.approved === "yes" && driver.isApproved) ||
+        (filters.approved === "no" && !driver.isApproved);
+
+      const balanceFromMatch =
+        !filters.balanceFrom ||
+        driver.walletBalance >= parseFloat(filters.balanceFrom);
+      const balanceToMatch =
+        !filters.balanceTo ||
+        driver.walletBalance <= parseFloat(filters.balanceTo);
+
+      return (
+        keywordMatch &&
+        statusMatch &&
+        approvedMatch &&
+        balanceFromMatch &&
+        balanceToMatch
+      );
+    });
+
+    setFilteredDrivers(filtered);
+    setCurrentPage(1);
+  };
+
+  const handleClear = () => {
+    setFilters(initialFilters);
+    setFilteredDrivers(drivers);
+    setCurrentPage(1);
+  };
+
+  const handleToggle = (
+    id: string,
+    field: "isOnline" | "status" | "isApproved"
+  ) => {
+    // Optimistic update
+    const updateList = (list: Driver[]) =>
+      list.map((driver) => {
+        if (driver.id === id) {
+          if (field === "status") {
+            return {
+              ...driver,
+              status: (driver.status === "Active" ? "Inactive" : "Active") as
+                | "Active"
+                | "Inactive",
+            };
+          }
+          return { ...driver, [field]: !driver[field] };
+        }
+        return driver;
+      });
+
+    setDrivers((prev) => updateList(prev));
+    setFilteredDrivers((prev) => updateList(prev));
+  };
+
+  // Pagination
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentDrivers = filteredDrivers.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredDrivers.length / itemsPerPage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      pageNumbers.push(1);
+      if (currentPage > 3) pageNumbers.push("...");
+      if (currentPage > 2 && currentPage < totalPages - 1)
+        pageNumbers.push(currentPage);
+      if (currentPage < totalPages - 2) pageNumbers.push("...");
+      pageNumbers.push(totalPages);
+
+      const uniquePageNumbers = Array.from(new Set(pageNumbers));
+      return uniquePageNumbers.map((num, index) => {
+        if (num === "...")
+          return (
+            <span key={index} className="px-3 py-1 text-gray-500">
+              ...
+            </span>
+          );
+        return (
+          <button
+            key={index}
+            onClick={() => paginate(num as number)}
+            className={`px-3 py-1 rounded-lg text-sm font-medium ${
+              num === currentPage
+                ? "bg-[#2F3A3F] text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100"
+            }`}
+          >
+            {num}
+          </button>
+        );
+      });
+    }
+
+    return pageNumbers.map((num) => (
+      <button
+        key={num}
+        onClick={() => paginate(num as number)}
+        className={`px-3 py-1 rounded-lg text-sm font-medium ${
+          num === currentPage
+            ? "bg-[#2F3A3F] text-white"
+            : "bg-white text-gray-700 hover:bg-gray-100"
+        }`}
+      >
+        {num}
+      </button>
+    ));
   };
 
   const stats = [
     {
       label: "Total Drivers",
       value: drivers.length,
-      icon: UserPlus,
-      color: "text-black",
+      icon: Users,
+      color: "text-blue-600",
     },
     {
-      label: "Active Accounts",
-      value: drivers.filter((d) => d.status === "active").length,
-      icon: TrendingUp,
-      color: "text-black",
+      label: "Active Drivers",
+      value: drivers.filter((d) => d.status === "Active").length,
+      icon: UserCheck,
+      color: "text-green-600",
     },
     {
-      label: "Suspended",
-      value: drivers.filter((d) => d.status === "suspended").length,
-      icon: Calendar,
-      color: "text-red-500",
+      label: "Inactive Drivers",
+      value: drivers.filter((d) => d.status === "Inactive").length,
+      icon: WifiOff,
+      color: "text-red-600",
     },
-
     {
-      label: "Online Now",
+      label: "Online Drivers",
       value: drivers.filter((d) => d.isOnline).length,
       icon: Wifi,
-      color: "text-green-500",
+      color: "text-green-600",
     },
     {
-      label: "Offline",
-      value: drivers.filter((d) => !d.isOnline).length,
-      icon: WifiOff,
-      color: "text-yellow-500",
+      label: "Total Balance",
+      value: `$${drivers
+        .reduce((acc, curr) => acc + curr.walletBalance, 0)
+        .toLocaleString()}`,
+      icon: Wallet,
+      color: "text-purple-600",
     },
   ];
-  const totalRevenue = drivers.reduce((sum, driver) => sum + driver.rating, 0);
-  const totalTrips = drivers.reduce(
-    (sum, driver) => sum + driver.totalTrips,
-    0
-  );
-
-  const handleAddDriver = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    formData.set("vehicleType", newDriverVehicleType);
-
-    // Convert FormData to JSON for API
-    const data = {
-      name: formData.get("name"),
-      email: formData.get("email"),
-      phone: formData.get("phone"),
-      vehicleType: formData.get("vehicleType"),
-      vehicleModel: formData.get("vehicleModel"),
-      vehicleColor: formData.get("vehicleColor"),
-      licensePlate: formData.get("licensePlate"),
-      licenseNumber: formData.get("licenseNumber"),
-      location: formData.get("location"),
-    };
-
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      const response = await fetch("/api/drivers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        setIsAddDialogOpen(false);
-        toast.success(`Driver ${data.name} added successfully!`);
-      } else {
-        toast.error(result.error || "Failed to add driver");
-      }
-    } catch (error) {
-      console.error("Error adding driver:", error);
-      toast.error("An unexpected error occurred");
-    }
-  };
-
-  const handleSendMessage = () => {
-    if (!messageText.trim()) {
-      toast.error("Please enter a message");
-      return;
-    }
-    toast.success(`Message sent to ${selectedDriver?.name}`);
-    setIsMessageDialogOpen(false);
-    setMessageText("");
-  };
 
   return (
-    <div className="bg-white min-h-screen border-none shadow-md rounded-lg p-4">
-      <div className="flex lg:hidden justify-center">
-        <Logo />
-      </div>
-      <div className="p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="w-full">
-            <h1 className="font-bold text-1xl sm:text-3xl bg-(--charcoal-dark) text-white p-1 rounded-md w-full">
+    <div className="min-h-screen bg-gray-50 p-6 md:p-8 font-sans w-full overflow-x-hidden">
+      <div className="flex justify-between items-center mb-6 w-full">
+        <div className="w-full">
+          <div className="w-full bg-[#2F3A3F] rounded-md mt-3">
+            <h1 className="text-xl font-semibold text-white p-2 w-full">
               Drivers Dashboard
             </h1>
-            <p
-              style={{ color: "var(--charcoal-dark)" }}
-              className="text-lg pl-3"
-            >
-              Manage and monitor all drivers
-            </p>
           </div>
+
+          <p className="text-sm text-gray-500">
+            <Link href="/dashboard"> Home /</Link>
+            <span className="text-gray-700">
+              <Link href="/drivers">Drivers</Link>{" "}
+            </span>
+          </p>
         </div>
-        <div className="flex justify-end">
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button style={{ backgroundColor: "#2DB85B", color: "white" }}>
-                <UserPlus className="w-4 h-4 mr-2" />
-                Add Driver
-              </Button>
-            </DialogTrigger>
-            <DialogContent
-              className="max-w-md p-6 rounded-lg shadow-xl
-        text-[#1E1E1E] bg-white
-        border border-[#ffffff]"
-              style={{
-                backgroundColor: "#ffffff",
-                backdropFilter: "none",
-                WebkitBackdropFilter: "none",
-              }}
-            >
-              <DialogHeader>
-                <DialogTitle>Add New Driver</DialogTitle>
-                <DialogDescription>
-                  Add a new driver to the EcoGo fleet
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleAddDriver} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    placeholder="John Doe"
-                    required
-                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="john@ecogo.ca"
-                    required
-                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    placeholder="+1 416-555-0000"
-                    required
-                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="vehicleType">Vehicle Type</Label>
-                  <Select
-                    value={newDriverVehicleType}
-                    onValueChange={setNewDriverVehicleType}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select vehicle type" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]">
-                      <SelectItem value="car">Car</SelectItem>
-                      <SelectItem value="bajaj">Bajaj</SelectItem>
-                      <SelectItem value="bike">Bike</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="vehicleModel">Vehicle Model</Label>
-                  <Input
-                    id="vehicleModel"
-                    name="vehicleModel"
-                    placeholder="e.g. Toyota Camry"
-                    required
-                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="vehicleColor">Vehicle Color</Label>
-                  <Input
-                    id="vehicleColor"
-                    name="vehicleColor"
-                    placeholder="e.g. White"
-                    required
-                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="licensePlate">License Plate</Label>
-                  <Input
-                    id="licensePlate"
-                    name="licensePlate"
-                    placeholder="ABC 123"
-                    required
-                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="licensePlate">License Number</Label>
-                  <Input
-                    id="licenseNumber"
-                    name="licenseNumber"
-                    placeholder="12345678"
-                    required
-                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Base Location</Label>
-                  <Input
-                    id="location"
-                    name="location"
-                    placeholder="Downtown Toronto"
-                    required
-                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
-                  />
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsAddDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    style={{ backgroundColor: "#2DB85B", color: "white" }}
-                  >
-                    Add Driver
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <Card key={stat.label} className="bg-white border-none shadow-md">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                      <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                    </div>
-                    <h3 style={{ color: "#2D2D2D" }}>{stat.value}</h3>
-                  </div>
-                  <p style={{ color: "#2D2D2D" }}>{stat.label}</p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        <Card className="bg-white border-none shadow-md rounded-lg h-10">
-          <div className="relative bg-white border-none rounded-lg">
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
-              style={{ color: "#2D2D2D" }}
-            />
-            <Input
-              placeholder="Search drivers by name, email, or license plate..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white border-none rounded-lg focus:outline-none focus:ring-0 shadow-none"
-              style={{
-                boxShadow: "none", // removes internal shadow
-                outline: "none", // removes browser outline
-              }}
-            />
-          </div>
-        </Card>
-        <CardTitle className="bg-(--charcoal-dark) text-white p-1 rounded-md w-full">
-          All Drivers
-        </CardTitle>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredDrivers.map((driver) => {
-            const statusColor = getStatusColor(driver.status);
-            return (
-              <Card
-                key={driver.id}
-                className="  bg-white border-none shadow-md  "
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2">
-                        {driver.name}
-                        <Badge
-                          style={{
-                            backgroundColor: statusColor.bg,
-                            color: statusColor.text,
-                          }}
-                        >
-                          {driver.status}
-                        </Badge>
-                        {driver.isOnline ? (
-                          <Badge className="bg-green-500 text-white">
-                            Online
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-gray-400 text-white">
-                            Offline
-                          </Badge>
-                        )}
-                      </CardTitle>
-                      <p className="text-sm mt-1" style={{ color: "#2D2D2D" }}>
-                        {driver.email}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span>{driver.rating}</span>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm" style={{ color: "#2D2D2D" }}>
-                        Phone
-                      </p>
-                      <p className="text-sm">{driver.phone}</p>
-                    </div>
-                    <div className="font-bold text-lg flex items-center gap-3">
-                      <p className="font-bold" style={{ color: "#2D2D2D" }}>
-                        Total Trips:
-                      </p>
-                      <p className="font-bold">{driver.totalTrips}</p>
-                    </div>
-                  </div>
-
-                  <div
-                    className="flex items-center gap-2 p-3 rounded-lg"
-                    style={{ backgroundColor: "#d3d3d3" }}
-                  >
-                    <Car className="w-4 h-4" style={{ color: "#2DB85B" }} />
-                    <div className="flex gap-6">
-                      <p className="text-sm">{driver.vehicleType}</p>
-                      <p className="text-sm" style={{ color: "#2D2D2D" }}>
-                        {driver.licensePlate}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-10">
-                    <MapPin className="w-4 h-4" style={{ color: "#2DB85B" }} />
-                    <div className="flex gap-2 pt-2 justify-end ">
-                      <Button
-                        size="icon-sm"
-                        variant="outline"
-                        className="cursor-pointer"
-                        onClick={() => {
-                          setSelectedDriver(driver);
-                          setIsViewDialogOpen(true);
-                        }}
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                      </Button>
-                      <Button
-                        size="icon-sm"
-                        style={{ backgroundColor: "black", color: "white" }}
-                        className="cursor-pointer p-2 rounded-md"
-                        onClick={() => {
-                          setSelectedDriver(driver);
-                          setIsMessageDialogOpen(true);
-                        }}
-                      >
-                        <MessageSquare className="w-3 h-3 mr-1" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-          <DialogContent
-            className="max-w-md p-6 rounded-lg shadow-xl text-[#1E1E1E] bg-white
-        border border-[#ffffff]"
-          >
-            <DialogHeader>
-              <DialogTitle>Driver Profile</DialogTitle>
-              <DialogDescription>
-                View complete driver information
-              </DialogDescription>
-            </DialogHeader>
-            {selectedDriver && (
-              <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3>{selectedDriver.name}</h3>
-                    <p className="text-sm mt-1" style={{ color: "#2D2D2D" }}>
-                      {selectedDriver.email}
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-1 items-end">
-                    <Badge>{selectedDriver.status}</Badge>
-                    {selectedDriver.isOnline ? (
-                      <Badge className="bg-green-500 text-white">Online</Badge>
-                    ) : (
-                      <Badge className="bg-gray-400 text-white">Offline</Badge>
-                    )}
-                  </div>
-                </div>
-
-                <div
-                  className="flex items-center gap-2 p-3 rounded-lg"
-                  style={{ backgroundColor: "#D0F5DC" }}
-                >
-                  <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  <div>
-                    <p>{selectedDriver.rating} Rating</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm" style={{ color: "#2D2D2D" }}>
-                      Phone Number
-                    </p>
-                    <p>{selectedDriver.phone}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm" style={{ color: "#2D2D2D" }}>
-                      Vehicle Information
-                    </p>
-                    <p>
-                      {selectedDriver.vehicleColor}{" "}
-                      {selectedDriver.vehicleModel}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {selectedDriver.vehicleType} •{" "}
-                      {selectedDriver.licensePlate}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm" style={{ color: "#2D2D2D" }}>
-                      Base Location
-                    </p>
-                    <p>{selectedDriver.location}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        <Dialog
-          open={isMessageDialogOpen}
-          onOpenChange={setIsMessageDialogOpen}
-        >
-          <DialogContent
-            className="max-w-md  text-[#1E1E1E] bg-white
-        border border-[#ffffff]"
-          >
-            <DialogHeader>
-              <DialogTitle>Send Message</DialogTitle>
-              <DialogDescription>
-                Send a message to{" "}
-                <span className="font-bold">{selectedDriver?.name}</span>
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="message">Message</Label>
-                <Textarea
-                  id="message"
-                  placeholder="Type your message here..."
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  rows={5}
-                />
-              </div>
-              <div className="flex gap-2 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsMessageDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  style={{ backgroundColor: "#2DB85B", color: "white" }}
-                  onClick={handleSendMessage}
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Send Message
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={stat.label} className="bg-white border-none shadow-md">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                    <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                  </div>
+                  <h3 style={{ color: "#2D2D2D" }}>{stat.value}</h3>
+                </div>
+                <p style={{ color: "#2D2D2D" }}>{stat.label}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <FilterForm
+        filters={filters}
+        setFilters={setFilters}
+        onSearch={handleSearch}
+        onClear={handleClear}
+      />
+
+      <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 w-full overflow-hidden">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-gray-800">Drivers list</h2>
+          <button
+            onClick={handleAddDriver}
+            className="flex items-center rounded-lg bg-[#2DB85B] px-4 py-2 text-sm font-medium text-white shadow-md hover:bg-green-700 transition-colors"
+          >
+            <PlusCircle className="w-4 h-4 mr-2" />
+            Add driver
+          </button>
+        </div>
+
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 table-fixed">
+            <thead className="bg-gray-50">
+              <tr>
+                <th
+                  scope="col"
+                  className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16"
+                >
+                  Id
+                </th>
+                <th
+                  scope="col"
+                  className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
+                >
+                  Phone
+                </th>
+                <th
+                  scope="col"
+                  className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
+                >
+                  Name
+                </th>
+                <th
+                  scope="col"
+                  className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40"
+                >
+                  Email
+                </th>
+                <th
+                  scope="col"
+                  className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
+                >
+                  Wallet
+                </th>
+                <th
+                  scope="col"
+                  className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20"
+                >
+                  Online
+                </th>
+                <th
+                  scope="col"
+                  className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20"
+                >
+                  Appr.
+                </th>
+                <th
+                  scope="col"
+                  className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16"
+                >
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={9}
+                    className="px-6 py-4 text-center text-sm text-gray-500"
+                  >
+                    Loading drivers...
+                  </td>
+                </tr>
+              ) : currentDrivers.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={9}
+                    className="px-6 py-4 text-center text-sm text-gray-500"
+                  >
+                    No drivers found.
+                  </td>
+                </tr>
+              ) : (
+                currentDrivers.map((driver, index) => (
+                  <tr key={driver.id} className="hover:bg-gray-50">
+                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                      {(startIndex + index + 1).toString().padStart(3, "0")}
+                    </td>
+                    <td
+                      className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900 truncate max-w-[120px]"
+                      title={driver.phone}
+                    >
+                      {driver.phone}
+                    </td>
+                    <td
+                      className="px-2 py-2 whitespace-nowrap text-sm text-gray-700 truncate max-w-[120px]"
+                      title={driver.name}
+                    >
+                      {driver.name}
+                    </td>
+                    <td
+                      className="px-2 py-2 whitespace-nowrap text-sm text-gray-700 truncate max-w-[150px]"
+                      title={driver.email}
+                    >
+                      {driver.email}
+                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-700 font-mono">
+                      ${driver.walletBalance.toFixed(2)}
+                    </td>
+
+                    <td className="px-2 py-2 whitespace-nowrap text-sm text-center">
+                      <div className="flex justify-center">
+                        <SwitchToggle
+                          checked={driver.isOnline}
+                          onToggle={() => handleToggle(driver.id, "isOnline")}
+                          label="Online"
+                        />
+                      </div>
+                    </td>
+
+                    <td className="px-2 py-2 whitespace-nowrap text-sm text-center">
+                      <div className="flex justify-center">
+                        <SwitchToggle
+                          checked={driver.status === "Active"}
+                          onToggle={() => handleToggle(driver.id, "status")}
+                          label="Status"
+                        />
+                      </div>
+                    </td>
+
+                    <td className="px-2 py-2 whitespace-nowrap text-sm text-center">
+                      <div className="flex justify-center">
+                        <SwitchToggle
+                          checked={driver.isApproved}
+                          onToggle={() => handleToggle(driver.id, "isApproved")}
+                          label="Approved"
+                        />
+                      </div>
+                    </td>
+
+                    <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                            <MoreVertical className="w-5 h-5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-white">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {(adminData?.role === "admin" ||
+                            adminData?.role === "super_admin") && (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() => handleEditDriver(driver)}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleViewTransactions(driver.id)
+                                }
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Transactions
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteDriver(driver.id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex flex-col sm:flex-row justify-between items-center mt-6">
+          <div className="text-sm text-gray-600 mb-4 sm:mb-0">
+            Showing {filteredDrivers.length > 0 ? startIndex + 1 : 0} to{" "}
+            {Math.min(endIndex, filteredDrivers.length)} of{" "}
+            {filteredDrivers.length} Entries
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            <div className="flex space-x-1">{renderPageNumbers()}</div>
+
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="p-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <DriverForm
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onSuccess={fetchDrivers}
+        initialData={selectedDriver}
+        role={adminData?.role || ""}
+      />
     </div>
   );
 }
-
-export default DriversPage;

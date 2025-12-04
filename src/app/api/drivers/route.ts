@@ -10,10 +10,16 @@ type CreateDriverBody = {
   name?: string;
   email?: string;
   phone?: string;
-  licenseNumber: string;
+  licenseNumber?: string;
   licenseExpiry?: string;
   drivingExperienceYears?: number;
   vehicleId?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  address?: string;
+  postalCode?: string;
+  gender?: string;
 };
 export type Role = keyof typeof ROLE_PERMISSIONS;
 
@@ -66,30 +72,31 @@ export async function POST(req: Request) {
       licenseExpiry,
       drivingExperienceYears,
       vehicleId,
+      country,
+      state,
+      city,
+      address,
+      postalCode,
+      gender,
     } = body;
 
     // =====================================
-    // 1️⃣ Basic: Validate license number
+    // 1️⃣ Basic: Validate license number (Optional now)
     // =====================================
-    if (!licenseNumber || licenseNumber.trim() === "") {
-      return NextResponse.json(
-        { success: false, error: "licenseNumber is required" },
-        { status: 400 }
-      );
-    }
+    if (licenseNumber && licenseNumber.trim() !== "") {
+      // License must be unique
+      const licenseCheck = await adminDb
+        .collection("drivers")
+        .where("licenseNumber", "==", licenseNumber)
+        .limit(1)
+        .get();
 
-    // License must be unique
-    const licenseCheck = await adminDb
-      .collection("drivers")
-      .where("licenseNumber", "==", licenseNumber)
-      .limit(1)
-      .get();
-
-    if (!licenseCheck.empty) {
-      return NextResponse.json(
-        { success: false, error: "License number already exists" },
-        { status: 409 }
-      );
+      if (!licenseCheck.empty) {
+        return NextResponse.json(
+          { success: false, error: "License number already exists" },
+          { status: 409 }
+        );
+      }
     }
 
     // =====================================
@@ -189,13 +196,24 @@ export async function POST(req: Request) {
       phone: phone || "",
       role: "driver",
 
-      licenseNumber,
+      licenseNumber: licenseNumber || null,
       licenseExpiry: licenseExpiry || null,
       drivingExperienceYears: drivingExperienceYears || 0,
       vehicleId: vehicleId || null,
-      status: "pending", // driver waiting for approval
+
+      country: country || null,
+      state: state || null,
+      city: city || null,
+      address: address || null,
+      postalCode: postalCode || null,
+      gender: gender || null,
+
+      status: "active", // Default to active
       rating: 0,
       totalTrips: 0,
+      walletBalance: 0,
+      isOnline: false,
+      isApproved: true, // Default to approved
       createdAt: new Date(),
       updatedAt: new Date(),
     };

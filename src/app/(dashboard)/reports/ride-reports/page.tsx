@@ -1,12 +1,7 @@
-import { ReportsPage } from "@/components/ReportsPage";
+import { RiderReportsPage } from "@/components/RiderReportsPage";
 import { requirePermission } from "@/lib/auth";
 
 export default async function Page() {
   const user = await requirePermission("reports", "read");
-  return (
-    <ReportsPage
-      userPermissions={user.permissions || {}}
-      defaultTab="operational"
-    />
-  );
+  return <RiderReportsPage />;
 }
