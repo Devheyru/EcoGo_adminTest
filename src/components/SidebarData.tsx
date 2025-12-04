@@ -199,12 +199,27 @@ export const menuItems: MenuItem[] = [
       // },
       { id: "ride/ride-requests", label: "Ride Requests" },
       { id: "ride/customer-rides", label: "Customer Rides" },
-      { id: "ride/ride-complaints", label: "Ride Complaints" },
-      { id: "operations/pending-rides", label: "Pending Rides" },
-      { id: "operations/scheduled-rides", label: "Scheduled Rides" },
+
+      { id: "ride/pending", label: "Pending Rides" },
+      { id: "ride/scheduled", label: "Scheduled Rides" },
       { id: "operations/completed-history", label: "Completed History" },
       { id: "operations/cancelled-rides", label: "Cancelled Rides" },
       { id: "operations/driver-performance", label: "Driver Performance" },
+    ],
+  },
+  {
+    id: "support",
+    label: "Complaints & Support",
+    icon: MessageSquare,
+    isDropdown: true,
+    requiredPermission: { resource: "support", action: "read" },
+    children: [
+      { id: "support/ride-complaints", label: "Ride Complaints" },
+      // { id: "support/ride-complaints", label: "Ride Complaints" },
+      { id: "support/driver-complaints", label: "Driver Complaints" },
+      { id: "support/rider-complaints", label: "Rider Complaints" },
+
+      // { id: "support/tickets", label: "Support Tickets" },
     ],
   },
   {
@@ -235,14 +250,14 @@ export const menuItems: MenuItem[] = [
       { id: "bookings/completed", label: "Completed Rides" },
       { id: "bookings/cancelled", label: "Cancelled Rides" },
       { id: "bookings/pending", label: "Pending Assignments" },
-      { id: "bookings/unassigned", label: "Unassigned Rides" },
-      { id: "bookings/auto-assign", label: "Auto-Assign Queue" },
-      { id: "bookings/manual-assign", label: "Manual Assignment" },
-      { id: "bookings/live-tracking", label: "Live Ride Tracking" },
-      { id: "bookings/rebooking", label: "Re-booking / Retry" },
+      // { id: "bookings/unassigned", label: "Unassigned Rides" },
+      // { id: "bookings/auto-assign", label: "Auto-Assign Queue" },
+      // { id: "bookings/manual-assign", label: "Manual Assignment" },
+      // { id: "bookings/live-tracking", label: "Live Ride Tracking" },
+      // { id: "bookings/rebooking", label: "Re-booking / Retry" },
 
-      { id: "bookings/issues", label: "Ride Issues / Support" },
-      { id: "bookings/audit", label: "Booking Audit Logs" },
+      // { id: "bookings/issues", label: "Ride Issues / Support" },
+      // { id: "bookings/audit", label: "Booking Audit Logs" },
     ],
   },
   {
@@ -309,19 +324,7 @@ export const menuItems: MenuItem[] = [
       { id: "hr/performance", label: "Performance" },
     ],
   },
-  {
-    id: "support",
-    label: "Complaints & Support",
-    icon: MessageSquare,
-    isDropdown: true,
-    requiredPermission: { resource: "support", action: "read" },
-    children: [
-      { id: "support/ride-complaints", label: "Ride Complaints" },
-      { id: "support/driver-complaints", label: "Driver Complaints" },
-      { id: "support/rider-complaints", label: "Rider Complaints" },
-      { id: "support/tickets", label: "Support Tickets" },
-    ],
-  },
+  
   {
     id: "it_support",
     label: "IT & Systems",
@@ -351,11 +354,11 @@ export const menuItems: MenuItem[] = [
           },
           {
             id: "tech/driver-telematics",
-            label: "Driver Telematics (Speeding, Braking, Idle)",
+            label: "Driver Telematics",
           },
           {
             id: "tech/app-version-tracking",
-            label: "App Version Tracking (Driver & Rider)",
+            label: "App Version Tracking",
           },
           {
             id: "tech/support-tickets",
@@ -363,7 +366,7 @@ export const menuItems: MenuItem[] = [
           },
           {
             id: "tech/operational-kpis",
-            label: "Operational Dashboard KPI Metrics",
+            label: "Operational KPI Metrics",
           },
         ],
       },
@@ -721,8 +724,8 @@ export const menuItems: MenuItem[] = [
       { id: "subscription/premium", label: "Premium Plan" },
       { id: "subscription/benefits", label: "Benefits Management" },
 
-      { id: "subscription/add", label: "Add" },
-      { id: "subscription/edit", label: "Edit" },
+      // { id: "subscription/add", label: "Add" },
+      // { id: "subscription/edit", label: "Edit" },
     ],
   },
   {

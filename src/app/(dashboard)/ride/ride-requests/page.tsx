@@ -703,16 +703,19 @@ const RideRequestAdminPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6 sm:p-10">
       {/* Breadcrumbs */}
-      <div className="flex items-center justify-between text-sm mb-6 text-gray-500">
-        <div className="flex items-center space-x-2">
-          <Home className="w-4 h-4 text-emerald-600" />
-          <span>Home</span>
-          <span className="text-gray-400">/</span>
-          <span className="font-medium text-gray-700">Ride requests</span>
-        </div>
+      <div className="text-2xl text-white bg-black w-full p-1 rounded">
+        <h1 className=" text-white">
+          Ride requests
+        </h1>
+      </div>
+      <div className=" text-sm mb-6 mt-1 text-gray-500">
+        {/* <Home className="w-4 h-4 text-emerald-600" /> */}
+
+        <span>Home</span>
+        <span className="text-black">/ride requests</span>
 
         {/* Create Ride Request Button */}
-        <Button
+        {/* <Button
           onClick={() => {
             setSelectedRide(null); // Clear selected ride for creation
             setIsEditMode(false);
@@ -721,10 +724,10 @@ const RideRequestAdminPage: React.FC = () => {
           className={GREEN_BRAND_COLOR}
         >
           <Plus className="w-4 h-4 mr-2" /> Create Ride Request
-        </Button>
+        </Button> */}
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Ride Requests</h1>
+      {/* <h1 className="text-2xl font-bold text-gray-900 mb-8">Ride Requests</h1> */}
 
       {/* Search and Filter Card (Replicated from Design) */}
       <Card className="mb-8">

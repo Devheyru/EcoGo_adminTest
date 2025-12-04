@@ -36,6 +36,7 @@ export interface Ride {
   pickup: Location;
   dropoff: Location;
   fare: Fare;
+  cost: number;
   createdAt: string; // ISO
   startedAt?: string | null; // ISO
   completedAt?: string | null; // ISO

@@ -48,6 +48,7 @@ export interface Analytics {
   revenueTrend: { date: string; revenue: number }[];
   topRoutes: { id: number; route: string; count: number }[];
   vehicleUtilization: { type: string; percentage: number }[];
+  
 }
 
 export interface AuditLog {

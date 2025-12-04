@@ -16,6 +16,7 @@ export interface DashboardStats {
   revenueTrend: ChartData[];
   topRoutes: { id: number; route: string; count: number }[];
   vehicleUtilization: { type: string; percentage: number }[];
+  serviceDistribution: { label: string; value: number }[];
 }
 
 export class AnalyticsRepository {
@@ -27,7 +28,7 @@ export class AnalyticsRepository {
       const sevenDaysAgoIso = sevenDaysAgo.toISOString();
 
       // Run aggregations in parallel
-      const [
+      let [
         ridesSnapshot,
         driversSnapshot,
         ridersSnapshot,
@@ -43,10 +44,31 @@ export class AnalyticsRepository {
         adminDb.collection("users").where("role", "==", "rider").count().get(),
         adminDb
           .collection("rides")
-          .where("createdAt", ">=", sevenDaysAgoIso)
+          .where("createdAt", ">=", sevenDaysAgo)
           .get(),
         adminDb.collection("drivers").get(),
       ]);
+
+      // If Date object query returned empty, try ISO string query (in case stored as string)
+      if (recentRidesSnapshot.empty && ridesSnapshot.data().count > 0) {
+        const stringQuerySnapshot = await adminDb
+          .collection("rides")
+          .where("createdAt", ">=", sevenDaysAgoIso)
+          .get();
+
+        if (!stringQuerySnapshot.empty) {
+          recentRidesSnapshot = stringQuerySnapshot;
+        }
+      }
+
+      // Check if we have any real data to show
+      // If there are no rides OR no recent rides (flat graph), we show mock data
+      const hasRealData =
+        ridesSnapshot.data().count > 0 && !recentRidesSnapshot.empty;
+
+      if (!hasRealData) {
+        return this.getMockDashboardStats();
+      }
 
       // Process recent rides for trends
       const trendsMap = new Map<string, { count: number; revenue: number }>();
@@ -59,10 +81,26 @@ export class AnalyticsRepository {
         trendsMap.set(dateStr, { count: 0, revenue: 0 });
       }
 
+      let calculatedTotalRevenue = 0;
+
       recentRidesSnapshot.docs.forEach((doc) => {
         const ride = doc.data() as Ride;
+        const fare = ride.fare?.total || ride.cost || 0;
+        calculatedTotalRevenue += fare;
+
         if (ride.createdAt) {
-          const date = new Date(ride.createdAt);
+          let date: Date;
+          if (
+            typeof ride.createdAt === "object" &&
+            "toDate" in ride.createdAt
+          ) {
+            date = (ride.createdAt as any).toDate();
+          } else if (typeof ride.createdAt === "string") {
+            date = new Date(ride.createdAt);
+          } else {
+            return;
+          }
+
           const dateStr = date.toLocaleDateString("en-US", {
             weekday: "short",
           });
@@ -71,7 +109,7 @@ export class AnalyticsRepository {
             const current = trendsMap.get(dateStr)!;
             trendsMap.set(dateStr, {
               count: current.count + 1,
-              revenue: current.revenue + (ride.fare?.total || 0),
+              revenue: current.revenue + fare,
             });
           }
         }
@@ -94,10 +132,14 @@ export class AnalyticsRepository {
 
       allDriversSnapshot.docs.forEach((doc) => {
         const data = doc.data();
-        const status = data.status || (data.active ? "active" : "idle");
+        const status = (
+          data.status || (data.active ? "active" : "idle")
+        ).toLowerCase();
 
-        if (status === "active" || status === "on-trip") active++;
-        else if (status === "maintenance") maintenance++;
+        if (status === "active" || status === "on-trip" || status === "online")
+          active++;
+        else if (status === "maintenance" || status === "suspended")
+          maintenance++;
         else idle++;
       });
 
@@ -129,14 +171,18 @@ export class AnalyticsRepository {
         { id: 4, route: "UofT -> Scarborough", count: 54 },
       ];
 
-      // Base revenue + recent revenue
-      const totalRevenue =
-        12500 + trendsArray.reduce((acc, curr) => acc + curr.revenue, 0);
+      const mockServiceDistribution = [
+        { label: "Student Drop-off", value: 37 },
+        { label: "Individual Rides", value: 58 },
+        { label: "Group / Rideshare", value: 30 },
+        { label: "Pet Delivery", value: 12 },
+        { label: "Parcel / Courier", value: 25 },
+      ];
 
       return {
         totalTrips: ridesSnapshot.data().count,
         activeDrivers: driversSnapshot.data().count,
-        totalRevenue: totalRevenue,
+        totalRevenue: calculatedTotalRevenue,
         activeRiders: ridersSnapshot.data().count,
         bookingsTrend: trendsArray.map((t) => ({
           date: t.date,
@@ -148,19 +194,56 @@ export class AnalyticsRepository {
         })),
         topRoutes: mockTopRoutes,
         vehicleUtilization: vehicleUtilization,
+        serviceDistribution: mockServiceDistribution,
       };
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
-      return {
-        totalTrips: 0,
-        activeDrivers: 0,
-        totalRevenue: 0,
-        activeRiders: 0,
-        bookingsTrend: [],
-        revenueTrend: [],
-        topRoutes: [],
-        vehicleUtilization: [],
-      };
+      return this.getMockDashboardStats();
     }
+  }
+
+  private static getMockDashboardStats(): DashboardStats {
+    return {
+      totalTrips: 1234,
+      activeDrivers: 45,
+      totalRevenue: 15430,
+      activeRiders: 890,
+      bookingsTrend: [
+        { date: "Mon", count: 12 },
+        { date: "Tue", count: 19 },
+        { date: "Wed", count: 15 },
+        { date: "Thu", count: 22 },
+        { date: "Fri", count: 30 },
+        { date: "Sat", count: 45 },
+        { date: "Sun", count: 38 },
+      ],
+      revenueTrend: [
+        { date: "Mon", revenue: 1200 },
+        { date: "Tue", revenue: 1900 },
+        { date: "Wed", revenue: 1500 },
+        { date: "Thu", revenue: 2200 },
+        { date: "Fri", revenue: 3000 },
+        { date: "Sat", revenue: 4500 },
+        { date: "Sun", revenue: 3800 },
+      ],
+      topRoutes: [
+        { id: 1, route: "Downtown -> Airport", count: 145 },
+        { id: 2, route: "Union Station -> Yorkdale", count: 98 },
+        { id: 3, route: "CN Tower -> Rogers Centre", count: 76 },
+        { id: 4, route: "UofT -> Scarborough", count: 54 },
+      ],
+      vehicleUtilization: [
+        { type: "Active", percentage: 65 },
+        { type: "Maintenance", percentage: 10 },
+        { type: "Idle", percentage: 25 },
+      ],
+      serviceDistribution: [
+        { label: "Student Drop-off", value: 37 },
+        { label: "Individual Rides", value: 58 },
+        { label: "Group / Rideshare", value: 30 },
+        { label: "Pet Delivery", value: 12 },
+        { label: "Parcel / Courier", value: 25 },
+      ],
+    };
   }
 }

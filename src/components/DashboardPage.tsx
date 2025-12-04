@@ -36,6 +36,7 @@ export interface DashboardMetrics {
   revenueTrend: any[];
   topRoutes: any[];
   vehicleUtilization: any[];
+  serviceDistribution: { label: string; value: number }[];
 }
 
 export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
@@ -71,38 +72,27 @@ export function DashboardPage({ metrics }: { metrics?: DashboardMetrics }) {
   ];
 
   // NEW SECTION — SERVICE CATEGORY METRICS
-  const serviceStats = [
-    {
-      label: "Student Drop-off",
-      value: "37",
-      color: "var(--eco-green)",
-      icon: School,
-    },
-    {
-      label: "Individual Rides",
-      value: "58",
-      color: "var(--eco-green)",
-      icon: Car,
-    },
-    {
-      label: "Group / Rideshare",
-      value: "30",
-      color: "var(--charcoal-dark)",
-      icon: Users,
-    },
-    {
-      label: "Pet Delivery",
-      value: "12",
-      color: "var(--eco-green)",
-      icon: Dog,
-    },
-    {
-      label: "Parcel / Courier",
-      value: "40",
-      color: "var(--charcoal-dark)",
-      icon: Package,
-    },
-  ];
+  const getServiceIcon = (label: string) => {
+    if (label.includes("Student")) return School;
+    if (label.includes("Group")) return Users;
+    if (label.includes("Pet")) return Dog;
+    if (label.includes("Parcel")) return Package;
+    return Car;
+  };
+
+  const getServiceColor = (label: string) => {
+    if (label.includes("Group") || label.includes("Parcel"))
+      return "var(--charcoal-dark)";
+    return "var(--eco-green)";
+  };
+
+  const serviceStats =
+    metrics?.serviceDistribution?.map((item) => ({
+      label: item.label,
+      value: item.value.toString(),
+      color: getServiceColor(item.label),
+      icon: getServiceIcon(item.label),
+    })) || [];
 
   const COLORS = [
     "var(--eco-green)",
