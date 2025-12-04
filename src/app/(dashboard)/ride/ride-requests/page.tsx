@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useMemo, useCallback } from "react";
 import {
   Search,
@@ -489,9 +490,10 @@ const ViewDetailModal: React.FC<{
       isOpen={isOpen}
       onClose={onClose}
       title={`Ride Details: ${ride.id}`}
-      fullScreen
+      
+      
     >
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
         {/* Column 1: Core Info */}
         <div className="lg:col-span-1 space-y-6">
           <h4 className="text-lg font-bold border-b pb-2 text-emerald-700">
