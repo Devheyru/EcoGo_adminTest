@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 // import {DeleteRider} from './operation/DeleteRider'
 import EditRider from "./operation/EditRider";
+import DeleteRider from "./operation/DeleteRider";
 import {
   Card,
   CardContent,
@@ -13,7 +14,6 @@ import {
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
-import { Edit, Loader2, MessageCircle } from "lucide-react";
 import {
   Select,
   SelectTrigger,
@@ -40,11 +40,28 @@ import {
   DollarSign,
   Eye,
   MessageSquare,
+  Loader2,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  History,
+  MapPin,
+  Wallet,
 } from "lucide-react";
+
+// NEW IMPORTS FOR DROPDOWN ACTIONS
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { toast } from "sonner";
 import { auth, db } from "../firebase/config";
 
-import { useEffect } from "react";
 import {
   doc,
   getDoc,
@@ -55,7 +72,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import Logo from "./Logo";
-import DeleteRider from "./operation/DeleteRider";
+import Link from "next/link";
 
 interface Rider {
   id: string;
@@ -91,7 +108,6 @@ interface AdminData {
 }
 
 export function RidersPage({ onClose, onCreated }: any) {
-  // const [riders, setRiders] = useState<Rider[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedRider, setSelectedRider] = useState<Rider | null>(null);
@@ -102,54 +118,20 @@ export function RidersPage({ onClose, onCreated }: any) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [riders, setRiders] = useState<any[]>([]);
-  // const [riders, setRiders] = useState<UserData[]>([]);
   const [rides, setRides] = useState<RideData[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  // Updated Form State with new fields
   const [form, setForm] = useState({
     name: "",
     phone: "",
     email: "",
     password: "",
     status: "inactive",
+    country: "",
+    walletBalance: "",
   });
-  // const fetchRiders = async (role: string) => {
-  //   try {
-  //     const res = await fetch("/api/riders", {
-  //       headers: {
-  //         "x-user-role": role,
-  //       },
-  //     });
 
-  //     // Log the response status to console for debugging
-  //     console.log("Riders API Response Status:", res.status);
-
-  //     const json = await res.json();
-
-  //     // Log the received JSON data
-  //     console.log("Riders API Response Data:", json);
-
-  //     if (json.success && Array.isArray(json.riders)) {
-  //       const formatted: Rider[] = json.riders.map((r: any) => ({
-  //         ...r,
-  //         // memberSince: convertToJsDate(r.memberSince),
-  //         // lastTrip: convertToJsDate(r.lastTrip),
-  //         phone: r.mobile ?? r.phone ?? "",
-  //         status: r.status ?? "inactive",
-  //         totalTrips: typeof r.totalTrips === "number" ? r.totalTrips : 0,
-  //         totalSpent: typeof r.totalSpent === "number" ? r.totalSpent : 0,
-  //       }));
-
-  //       setRiders(formatted);
-  //     } else {
-  //       // Log error if success is false or riders is not an array
-  //       console.error(
-  //         "Riders API returned success: false or invalid data structure:",
-  //         json
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Failed to fetch riders from API:", error);
-  //   }
-  // };
   const fetchRiders = async () => {
     setLoading(true);
     const res = await fetch("/api/riders");
@@ -157,59 +139,6 @@ export function RidersPage({ onClose, onCreated }: any) {
     setRiders(data.riders || []);
     setLoading(false);
   };
-
-  //  useEffect(() => {
-
-  //    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-  //      if (!user) {
-  //        router.push("/login");
-  //        return;
-  //      }
-
-  //      // Try admins, users, and super_admins collections
-  //      const collections = ["admins", "users", "super_admins"];
-  //      let found = false;
-  //      let data = null;
-  //      let role = ""; // Store the determined role
-
-  //      for (const col of collections) {
-  //        const ref = doc(db, col, user.uid);
-  //        const snap = await getDoc(ref);
-  //        if (snap.exists()) {
-  //          data = snap.data();
-  //          role = data.role ?? ""; // Capture the role
-  //          found = true;
-  //          break;
-  //        }
-  //      }
-
-  //      if (found && data) {
-  //        const adminProfile = {
-  //          id: user.uid,
-  //          firstName: data.firstName ?? "",
-  //          lastName: data.lastName ?? "",
-  //          email: data.email ?? "",
-  //          role: role,
-  //          mobile: data.mobile ?? "",
-  //          canOverride: data.canOverride ?? false,
-  //        };
-
-  //        setAdminData(adminProfile);
-
-  //        // 🎯 FIX: Call fetchRiders immediately upon successful authentication
-  //        // and retrieval of the user role.
-  //        if (role) {
-  //          fetchRiders(role);
-  //        }
-  //      } else {
-  //        router.push("/login");
-  //      }
-
-  //      setLoading(false);
-  //    });
-
-  //    return () => unsubscribe();
-  //  }, [router]);
 
   useEffect(() => {
     fetchRiders();
@@ -220,6 +149,23 @@ export function RidersPage({ onClose, onCreated }: any) {
       rider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       rider.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       rider.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Pagination (10 per page)
+  const itemsPerPage = 10;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredRiders.length / itemsPerPage)
+  );
+  useEffect(() => {
+    if (currentPage > totalPages - 1) {
+      setCurrentPage(Math.max(0, totalPages - 1));
+    }
+  }, [filteredRiders.length]);
+
+  const paginatedRiders = filteredRiders.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
   );
 
   const getStatusColor = (status: Rider["status"]) => {
@@ -272,7 +218,6 @@ export function RidersPage({ onClose, onCreated }: any) {
       totalTrips: 0,
       totalSpent: 0,
       memberSince: Timestamp.fromDate(new Date()),
-
       lastTrip: null,
       status: "active",
     };
@@ -280,8 +225,10 @@ export function RidersPage({ onClose, onCreated }: any) {
     setIsAddDialogOpen(false);
     toast.success(`Rider ${newRider.name} added successfully!`);
   };
+
   const createRider = async () => {
     setLoading(true);
+    // Note: You might need to update your API to accept country and walletBalance
     const res = await fetch("/api/riders", {
       method: "POST",
       body: JSON.stringify(form),
@@ -290,8 +237,10 @@ export function RidersPage({ onClose, onCreated }: any) {
     setLoading(false);
 
     if (data.success) {
-      onCreated();
-      onClose();
+      if (onCreated) onCreated();
+      if (onClose) onClose();
+      setIsAddDialogOpen(false); // Close dialog
+      fetchRiders(); // Refresh list
     } else {
       alert(data.error || data.message);
     }
@@ -305,6 +254,11 @@ export function RidersPage({ onClose, onCreated }: any) {
     toast.success(`Message sent to ${selectedRider?.name}`);
     setIsMessageDialogOpen(false);
     setMessageText("");
+  };
+
+  const handleTransactionHistory = (rider: any) => {
+    toast.info(`Viewing transaction history for ${rider.name}`);
+    // Implement transaction history view logic here
   };
 
   return (
@@ -323,144 +277,20 @@ export function RidersPage({ onClose, onCreated }: any) {
             </p>
           </div>
         </div>
-        <div className="flex justify-end">
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button style={{ backgroundColor: "#2DB85B", color: "white" }}>
-                <UserPlus className="w-4 h-4 mr-2" />
-                Add Rider
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent
-              className="
-        max-w-xs sm:max-w-md p-6 rounded-lg shadow-xl {/* Adjusted max-width for mobile */}
-        text-[#1E1E1E] bg-white
-        !bg-[white]
-        border border-[#ffffff]
-      "
-              style={{
-                backgroundColor: "#1E1E1E",
-                backdropFilter: "none",
-                WebkitBackdropFilter: "none",
-              }}
-            >
-              <DialogHeader>
-                <DialogTitle>Add New Rider</DialogTitle>
-                <DialogDescription className="text-[#2D2D2D]">
-                  Register a new rider in the system
-                </DialogDescription>
-              </DialogHeader>
-
-              <form onSubmit={handleAddRider} className="space-y-4 mt-4 h-110">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-white">
-                    Full Name
-                  </Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    placeholder="Gem hund"
-                    required
-                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="gem@ecogo.ca"
-                    required
-                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
-                    onChange={(e) =>
-                      setForm({ ...form, email: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-white">
-                    Phone
-                  </Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    placeholder="+1 416-555-0000"
-                    required
-                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
-                    onChange={(e) =>
-                      setForm({ ...form, phone: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-white">
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="password"
-                    required
-                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
-                    onChange={(e) =>
-                      setForm({ ...form, password: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Status</Label>
-
-                  <Select
-                    value={form.status}
-                    onValueChange={(value) =>
-                      setForm({ ...form, status: value })
-                    } // ✅ FIXED
-                  >
-                    <SelectTrigger className="w-full bg-white border-gray-300">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="suspended">Suspended</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex gap-2 justify-end pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsAddDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    style={{ backgroundColor: "#2DB85B", color: "white" }}
-                    onClick={createRider}
-                  >
-                    {/* Add Rider */}
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      "Save"
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+        <div className="flex gap-1">
+          <Link
+            href="/"
+            className="hover:underline hover:decoration-green-500 hover:underline-offset-2"
+          >
+            Home
+          </Link>
+          /
+          <Link
+            href="/riders"
+            className="hover:underline hover:decoration-green-500 hover:underline-offset-2"
+          >
+            Rider
+          </Link>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 w-full h-auto gap-4 md:gap-5">
@@ -491,6 +321,7 @@ export function RidersPage({ onClose, onCreated }: any) {
             );
           })}
         </div>
+
         <Card className=" border-none shadow-lg rounded-lg h-16 my-5">
           <div className="relative bg-white border-none rounded-lg">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-800" />
@@ -500,175 +331,396 @@ export function RidersPage({ onClose, onCreated }: any) {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-white border-none rounded-lg focus:outline-none h-16 text-base sm:text-lg focus:ring-0 shadow-none "
               style={{
-                boxShadow: "none", // removes internal shadow
-                outline: "none", // removes browser outline
+                boxShadow: "none",
+                outline: "none",
               }}
             />
           </div>
         </Card>
-        <Card className="bg-white border-none shadow-lg rounded-lg">
+        <div className="flex justify-end">
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button style={{ backgroundColor: "#2DB85B", color: "white" }}>
+                <UserPlus className="w-4 h-4 mr-2" />
+                Add Rider
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent
+              className="max-w-xs sm:max-w-lg p-6 rounded-lg shadow-xl text-[#1E1E1E] bg-white border border-[#ffffff] overflow-y-auto max-h-[90vh]"
+              style={{
+                backgroundColor: "#1E1E1E",
+                backdropFilter: "none",
+                WebkitBackdropFilter: "none",
+              }}
+            >
+              <DialogHeader>
+                <DialogTitle>Add New Rider</DialogTitle>
+                <DialogDescription className="text-[#2D2D2D]">
+                  Register a new rider with full information
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-white">
+                      Full Name
+                    </Label>
+                    <Input
+                      id="name"
+                      placeholder="Gem hund"
+                      className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
+                      onChange={(e) =>
+                        setForm({ ...form, name: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-white">
+                      Phone
+                    </Label>
+                    <Input
+                      id="phone"
+                      placeholder="+1 416-555-0000"
+                      className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
+                      onChange={(e) =>
+                        setForm({ ...form, phone: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-white">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="gem@ecogo.ca"
+                    className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="country" className="text-white">
+                      Country
+                    </Label>
+                    <Input
+                      id="country"
+                      placeholder="Ethiopia"
+                      className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
+                      onChange={(e) =>
+                        setForm({ ...form, country: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-white">
+                      Password
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="password"
+                      className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
+                      onChange={(e) =>
+                        setForm({ ...form, password: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="wallet" className="text-white">
+                      Wallet Balance
+                    </Label>
+                    <Input
+                      id="wallet"
+                      type="number"
+                      placeholder="0.00"
+                      className="bg-[#ffffff] text-[#1E1E1E] border border-[#444]"
+                      onChange={(e) =>
+                        setForm({ ...form, walletBalance: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-white">Status</Label>
+                    <Select
+                      value={form.status}
+                      onValueChange={(value) =>
+                        setForm({ ...form, status: value })
+                      }
+                    >
+                      <SelectTrigger className="w-full bg-white border-gray-300">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="suspended">Suspended</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 justify-end pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAddDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    style={{ backgroundColor: "#2DB85B", color: "white" }}
+                    onClick={createRider}
+                  >
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Save Rider"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <Card className="bg-white border-none shadow-lg rounded-lg w-full">
           <CardHeader>
             <CardTitle className="bg-[var(--charcoal-dark)] text-white p-1 rounded-md w-full">
               All Riders
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="w-full overflow-x-auto">
-              <table className="w-full min-w-[1000px]">
+            <div className="w-full overflow-x-hidden">
+              <table className="w-full table-auto">
                 <thead>
                   <tr
                     style={{ borderBottomWidth: "1px", borderColor: "#E6E6E6" }}
                   >
-                    <th className="text-left p-4 whitespace-nowrap text-sm">
-                      ID
-                    </th>
-                    <th className="text-left p-4 whitespace-nowrap text-sm">
-                      Name
-                    </th>
-                    <th className="text-left p-4 whitespace-nowrap text-sm">
-                      Contact
-                    </th>
-                    <th className="text-left p-4 whitespace-nowrap text-sm">
-                      Status
-                    </th>
-                    <th className="text-left p-4 whitespace-nowrap text-sm">
-                      Total Trips
-                    </th>
-                    <th className="text-left p-4 whitespace-nowrap text-sm">
-                      Total Spent
-                    </th>
-                    <th className="text-left p-4 whitespace-nowrap text-sm">
-                      Member Since
-                    </th>
-                    <th className="text-left p-4 whitespace-nowrap text-sm">
-                      Last Trip
-                    </th>
-                    <th className="text-right p-4 whitespace-nowrap text-sm">
-                      Actions
-                    </th>
+                    <th className="text-left p-4 text-sm">ID</th>
+                    <th className="text-left p-4 text-sm">Name</th>
+                    <th className="text-left p-4 text-sm">Contact</th>
+                    <th className="text-left p-4 text-sm">Country</th>
+                    <th className="text-left p-4 text-sm">Gender</th>
+                    <th className="text-left p-4 text-sm">Status</th>
+                    <th className="text-left p-4 text-sm">Online?</th>
+                    <th className="text-left p-4 text-sm">Wallet Balance</th>
+                    <th className="text-left p-4 text-sm">Ecogo Coin</th>
+                    <th className="text-left p-4 text-sm">Total Trips</th>
+                    <th className="text-left p-4 text-sm">Total Spent</th>
+                    <th className="text-right p-4 text-sm">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {riders.map((rider: any, index) => (
-                    <tr
-                      key={rider.id}
-                      style={{
-                        borderBottomWidth: "1px",
-                        borderColor: "#E6E6E6",
-                      }}
-                    >
-                      <td className="p-4 text-sm whitespace-nowrap">
-                        {String(index + 1).padStart(3, "0")}
-                      </td>
+                  {paginatedRiders.map((rider: any, index) => {
+                    const globalIndex = currentPage * itemsPerPage + index;
+                    const isOnline = globalIndex % 3 !== 0; // Random mock status
+                    const country = "Ethiopia"; // Hardcoded
+                    const gender = globalIndex % 2 === 0 ? "Male" : "Female"; // Random mock
+                    const walletBalance = (Math.random() * 500).toFixed(2); // Mock
+                    const ecogoCoin = Math.floor(Math.random() * 100); // Mock
 
-                      <td className="p-4 text-sm whitespace-nowrap">
-                        <p>{rider.name}</p>
-                      </td>
-
-                      <td className="p-4 text-sm whitespace-nowrap">
-                        <p className="text-xs">{rider.email}</p>{" "}
-                        {/* Even smaller text for email/phone */}
-                        <p className="text-xs" style={{ color: "#2D2D2D" }}>
-                          {rider.phone}
-                        </p>
-                      </td>
-
-                      <td className="p-4 whitespace-nowrap">
-                        <Badge
-                          className={` text-black text-xs
-              ${rider.status === "active" ? "bg-green-300" : ""}
-              ${rider.status === "inactive" ? "bg-red-300" : ""}
-              ${rider.status === "suspended" ? "bg-gray-300" : ""}
-            `}
-                        >
-                          {rider.status}
-                        </Badge>
-                      </td>
-
-                      <td className="p-4 text-sm whitespace-nowrap font-bold">
-                        {rider.totalTrips}
-                      </td>
-
-                      <td className="p-4 text-sm whitespace-nowrap font-bold">
-                        {/* ${rider.totalSpent.toFixed(2)} */} $200
-                      </td>
-
-                      <td
-                        className="p-4 text-xs whitespace-nowrap"
-                        style={{ color: "#2D2D2D" }}
+                    return (
+                      <tr
+                        key={rider.id}
+                        style={{
+                          borderBottomWidth: "1px",
+                          borderColor: "#E6E6E6",
+                        }}
                       >
-                        {/* {rider.memberSince
-                          ? rider.memberSince.toDate().toLocaleDateString()
-                          : "N/A"} */}
-                        2025-11-11
-                      </td>
+                        <td className="p-4 text-sm">
+                          {String(globalIndex + 1).padStart(3, "0")}
+                        </td>
 
-                      <td
-                        className="p-4 text-xs whitespace-nowrap"
-                        style={{ color: "#2D2D2D" }}
-                      >
-                        {/* {rider.lastTrip
-                          ? rider.lastTrip.toDate().toLocaleDateString()
-                          : "N/A"} */}
-                        2025-11-25
-                      </td>
+                        <td className="p-4 text-sm">
+                          <p>{rider.name}</p>
+                        </td>
 
-                      <td className="p-4 whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1">
-                          {" "}
-                          {/* Reduced gap */}
-                          <Button
-                            size="icon" /* Changed to size="icon" for smaller buttons on mobile */
-                            // variant="outline"
-                            onClick={() => {
-                              setSelectedRider(rider);
-                              setIsViewDialogOpen(true);
-                            }}
+                        <td className="p-4 text-sm">
+                          <p className="text-xs">{rider.email}</p>
+                          <p className="text-xs" style={{ color: "#2D2D2D" }}>
+                            {rider.phone}
+                          </p>
+                        </td>
+
+                        {/* Country Column (Hardcoded) */}
+                        <td className="p-4 text-sm">{country}</td>
+
+                        {/* Gender Column (Hardcoded) */}
+                        <td className="p-4 text-sm">{gender}</td>
+
+                        <td className="p-4">
+                          <Badge
+                            className={` text-black text-xs
+                              ${rider.status === "active" ? "bg-green-300" : ""}
+                              ${rider.status === "inactive" ? "bg-red-300" : ""}
+                              ${
+                                rider.status === "suspended"
+                                  ? "bg-gray-300"
+                                  : ""
+                              }
+                            `}
                           >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <EditRider rider={rider} onUpdated={fetchRiders} />
-                          {/* <Button
-                            size="icon"
-                            style={{
-                              backgroundColor: "#2DB85B",
-                              color: "white",
-                            }}
-                            onClick={() => {
-                              setSelectedRider(rider);
-                              setIsMessageDialogOpen(true);
-                            }}
-                          >
-                            
-                            <MessageCircle className="w-4 h-4" />
-                          </Button> */}
-                          <Button
-                            size="icon"
-                            onClick={() => {
-                              setSelectedRider(rider);
-                              setIsMessageDialogOpen(true);
-                            }}
-                          >
-                            <DeleteRider
-                              rider={rider}
-                              onDeleted={fetchRiders}
-                            />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            {rider.status}
+                          </Badge>
+                        </td>
+                        {/* Online Status Column */}
+                        <td className="p-4 text-sm">
+                          <span
+                            className={`inline-block w-3 h-3 rounded-full ${
+                              isOnline ? "bg-green-500" : "bg-gray-400"
+                            }`}
+                          ></span>
+                        </td>
+
+                        {/* Wallet Balance (Hardcoded) */}
+                        <td className="p-4 text-sm font-bold">
+                          ${walletBalance}
+                        </td>
+
+                        {/* Ecogo Coin (Hardcoded) */}
+                        <td className="p-4 text-sm font-medium text-yellow-600">
+                          {ecogoCoin} Coins
+                        </td>
+
+                        <td className="p-4 text-sm font-bold">
+                          {rider.totalTrips}
+                        </td>
+
+                        <td className="p-4 text-sm font-bold">$200</td>
+
+                        <td className="p-4 text-right">
+                          {/* ACTIONS DROPDOWN */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="bg-white border border-gray-200"
+                            >
+                              {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
+
+                              {/* Detail Action */}
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedRider(rider);
+                                  setIsViewDialogOpen(true);
+                                }}
+                              >
+                                {/* <Eye className="mr-2 h-4 w-4" /> */}
+                                Detail
+                              </DropdownMenuItem>
+
+                              <DropdownMenuSeparator />
+
+                              {/* Transaction History Action */}
+                              <DropdownMenuItem
+                                onClick={() => handleTransactionHistory(rider)}
+                              >
+                                {/* <History className="mr-2 h-4 w-4" /> */}
+                                Transaction History
+                              </DropdownMenuItem>
+
+                              <DropdownMenuSeparator />
+
+                              {/* Update Action - Wrapping existing component */}
+                              <DropdownMenuItem
+                                onSelect={(e) => e.preventDefault()}
+                                className="p-0"
+                              >
+                                <div className="w-full flex items-center px-2 py-1">
+                                  {/* Note: EditRider is likely a Dialog Trigger. We simply render it here. */}
+                                  <EditRider
+                                    rider={rider}
+                                    onUpdated={fetchRiders}
+                                  />
+                                  Update
+                                </div>
+                              </DropdownMenuItem>
+
+                              {/* Delete Action - Wrapping existing component */}
+                              <DropdownMenuItem
+                                onSelect={(e) => e.preventDefault()}
+                                className="p-0 text-red-600 focus:text-red-600"
+                              >
+                                <div className="w-full flex items-center px-2 py-1">
+                                  <DeleteRider
+                                    rider={rider}
+                                    onDeleted={fetchRiders}
+                                  />
+                                  Delete
+                                </div>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                  disabled={currentPage === 0}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <span className="text-sm text-gray-600">
+                  Showing{" "}
+                  {filteredRiders.length === 0
+                    ? 0
+                    : currentPage * itemsPerPage + 1}
+                  -
+                  {Math.min(
+                    (currentPage + 1) * itemsPerPage,
+                    filteredRiders.length
+                  )}{" "}
+                  of {filteredRiders.length}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">
+                  Page {currentPage + 1} of {totalPages}
+                </span>
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages - 1, p + 1))
+                  }
+                  disabled={currentPage >= totalPages - 1}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
+
+        {/* View Details Dialog */}
         <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-          <DialogContent
-            className="max-w-xs sm:max-w-md p-6 rounded-lg shadow-xl text-[#1E1E1E] bg-white
-        !bg-[white]
-        border border-[#ffffff]"
-          >
+          <DialogContent className="max-w-xs sm:max-w-md p-6 rounded-lg shadow-xl text-[#1E1E1E] bg-white border border-[#ffffff]">
             <DialogHeader>
               <DialogTitle>Rider Profile</DialogTitle>
               <DialogDescription>
@@ -683,17 +735,11 @@ export function RidersPage({ onClose, onCreated }: any) {
                     <p className="text-sm mt-1" style={{ color: "#2D2D2D" }}>
                       {selectedRider.email}
                     </p>
+                    <p className="text-sm mt-1 text-gray-500 flex items-center gap-1">
+                      <MapPin className="w-3 h-3" /> Ethiopia
+                    </p>
                   </div>
-                  <Badge
-                    style={
-                      {
-                        // backgroundColor: getStatusColor(selectedRider.status).bg,
-                        // color: getStatusColor(selectedRider.status).text,
-                      }
-                    }
-                  >
-                    {selectedRider.status}
-                  </Badge>
+                  <Badge>{selectedRider.status}</Badge>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -713,11 +759,9 @@ export function RidersPage({ onClose, onCreated }: any) {
                     style={{ backgroundColor: "#D0F5DC" }}
                   >
                     <p className="text-sm" style={{ color: "#2D2D2D" }}>
-                      Total Spent
+                      Wallet Balance
                     </p>
-                    <h4 style={{ color: "#2DB85B" }}>
-                      {/* ${selectedRider.totalSpent.toFixed(2)} */}
-                    </h4>
+                    <h4 style={{ color: "#2DB85B" }}>$150.00</h4>
                   </div>
                 </div>
 
@@ -740,31 +784,18 @@ export function RidersPage({ onClose, onCreated }: any) {
                         : "N/A"}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm" style={{ color: "#2D2D2D" }}>
-                      Last Trip
-                    </p>
-                    ``
-                    <p>
-                      {selectedRider.lastTrip
-                        ? selectedRider.lastTrip.toDate().toLocaleDateString()
-                        : "No trips yet"}
-                    </p>
-                  </div>
                 </div>
               </div>
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Message Dialog */}
         <Dialog
           open={isMessageDialogOpen}
           onOpenChange={setIsMessageDialogOpen}
         >
-          <DialogContent
-            className="max-w-xs sm:max-w-md text-[#1E1E1E] bg-white {/* Adjusted max-width for mobile */}
-        !bg-[white]
-        border border-[#ffffff]"
-          >
+          <DialogContent className="max-w-xs sm:max-w-md text-[#1E1E1E] bg-white border border-[#ffffff]">
             <DialogHeader>
               <DialogTitle>Send Message</DialogTitle>
               <DialogDescription>
