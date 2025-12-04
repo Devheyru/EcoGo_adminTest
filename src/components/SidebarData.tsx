@@ -370,7 +370,6 @@ export const menuItems: MenuItem[] = [
       {
         id: "role-management",
         label: "Role Management",
-        requiredPermission: { resource: "roles", action: "read" },
         // or UsersCog, LockKeyhole — pick your preferred icon
 
         requiredPermission: { resource: "roles", action: "read" },
@@ -813,7 +812,6 @@ export const menuItems: MenuItem[] = [
         id: "reports",
         label: "Reports",
 
-       
         children: [
           { id: "reports/ride-reports", label: "Ride Reports" },
           { id: "reports/driver-reports", label: "Driver Reports" },
