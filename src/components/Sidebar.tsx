@@ -191,7 +191,7 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
 
       <aside
         ref={sidebarRef}
-        className={`fixed md:static top-0 left-0 h-full z-40 w-60 flex flex-col transition-transform duration-300
+        className={`fixed md:static top-0 left-0 h-full z-40 w-68 flex flex-col transition-transform duration-300
         bg-(--charcoal-dark) ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
@@ -264,13 +264,18 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
                 <div key={item.id}>
                   {/* PARENT DROPDOWN ROW */}
                   <div
-                    className="w-full flex items-center gap-1 px-2 py-1 rounded-lg mb-1 transition duration-150 ease-in-out hover:bg-[#3A4750] hover:text-[#2DB85B]"
+                    className="w-full flex items-center gap-1 px-1 py-1 rounded-lg mb-1 transition duration-150 ease-in-out hover:bg-[#3A4750] hover:text-[#2DB85B]"
                     style={{
                       backgroundColor: rowActive ? "#3A4750" : "transparent",
                       color: rowActive ? "#2DB85B" : "white",
                     }}
                   >
-                    <Icon className="w-4 h-4 shrink-0 text-[#2DB85B]" />
+                    <Icon
+                      className="w-4 h-4 shrink-0 text-[#2DB85B]"
+                      style={{
+                        color: rowActive || isExpanded ?   "inherit" : "#2DB85B",
+                      }}
+                    />
 
                     <button
                       type="button"
@@ -309,7 +314,7 @@ export function Sidebar({ userPermissions, userName }: SidebarProps) {
                             <div key={sub.id}>
                               <button
                                 onClick={() => toggleDropdown(sub.id)}
-                                className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-[12px] transition duration-150 ease-in-out hover:bg-[#3A4750] hover:text-[#2DB85B]"
+                                className="w-full flex items-center justify-between px-2 py-2 rounded-lg text-[12px] transition duration-150 ease-in-out hover:bg-[#3A4750] hover:text-[#2DB85B]"
                                 style={{
                                   backgroundColor:
                                     isParentExpanded || parentActive
