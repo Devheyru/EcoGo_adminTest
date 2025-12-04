@@ -15,6 +15,12 @@ type UpdateDriverBody = {
   drivingExperienceYears?: number;
   vehicleId?: string | null;
   status?: "pending" | "approved" | "rejected" | "active" | "suspended";
+  country?: string;
+  state?: string;
+  city?: string;
+  address?: string;
+  postalCode?: string;
+  gender?: string;
   // other driver-specific fields
 };
 
