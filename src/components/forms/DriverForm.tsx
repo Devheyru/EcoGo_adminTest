@@ -337,18 +337,23 @@ export function DriverForm({
           </TabsContent>
         </Tabs>
 
-        <SheetFooter className="mt-6">
+        <SheetFooter className="mt-6 flex justify-end gap-3">
           <SheetClose asChild>
             <Button variant="outline" type="button">
               Cancel
             </Button>
           </SheetClose>
+
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-[#2DB85B] hover:bg-green-700"
+            className="bg-[#2DB85B] text-white hover:bg-green-700"
           >
-            {loading ? "Saving..." : "Save changes"}
+            {loading
+              ? "Saving..."
+              : initialData
+              ? "Save changes"
+              : "Add Driver"}
           </Button>
         </SheetFooter>
       </SheetContent>
